@@ -16,6 +16,6 @@
 
 ## Авторы проекта
 
-### [Александр Десятовский](https://github.com/Gentlem4n72 "Александра Десятовский")
-### [Александра Дермелева](https://github.com/al3ksandraa "Александра Дермелева")
-### [Артем Ясков](https://github.com/ScaryOrange "Ясков Артем")
+### [Александр Десятовский](https://github.com/Gentlem4n72 "Gentlem4n72")
+### [Александра Дермелева](https://github.com/al3ksandraa "al3ksandraa")
+### [Артем Ясков](https://github.com/ScaryOrange "ScaryOrange")
