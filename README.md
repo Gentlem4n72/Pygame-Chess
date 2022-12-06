@@ -8,9 +8,11 @@
 
 **lichess.org**:
 - [Официальный сайт](https://lichess.org/ "Официальный сайт")
+- ![Картинка](https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Lichess_Logo_2019.svg/440px-Lichess_Logo_2019.svg.png "Подсказка")
 
 **chessday.ru**:
-- [Официальный сайт](https://chessday.ru/play-online/computer "Официальный сайт")
+- [Официальный сайт](https://chessday.ru/ "Официальный сайт")
+- ![Картинка](https://sun9-51.userapi.com/s/v1/if1/xwDW1NJjXN2-azqGC5EK6pJOmJj-cqj1jUARFoD2F765VtiU7shvQMpIpS2RmaCfr2Ncstjs.jpg?size=490x490&quality=96&crop=0,0,490,490&ava=1 "Подсказка")
 
 ## Авторы проекта
 
