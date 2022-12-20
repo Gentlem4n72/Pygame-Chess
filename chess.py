@@ -61,28 +61,33 @@ class Board(pygame.sprite.Sprite):
         for row in range(8):
             self.field.append([None] * 8)
         self.field[0] = [
-            Rook(WHITE, 0, 0), Knight(WHITE),
+            Rook(WHITE, 0, 0), Knight(WHITE, cell_size, 0),
             Bishop(WHITE, cell_size * 2, 0), Queen(WHITE, cell_size * 3, 0),
             King(WHITE, cell_size * 4, 0), Bishop(WHITE, cell_size * 5, 0),
-            Knight(WHITE), Rook(WHITE, cell_size * 7, 0)
+            Knight(WHITE, cell_size * 6, 0), Rook(WHITE, cell_size * 7, 0)
         ]
         self.field[1] = [
-            Pawn(WHITE), Pawn(WHITE), Pawn(WHITE), Pawn(WHITE),
-            Pawn(WHITE), Pawn(WHITE), Pawn(WHITE), Pawn(WHITE)
+            Pawn(WHITE, 0, cell_size), Pawn(WHITE, cell_size, cell_size),
+            Pawn(WHITE, cell_size * 2, cell_size), Pawn(WHITE, cell_size * 3, cell_size),
+            Pawn(WHITE, cell_size * 4, cell_size), Pawn(WHITE, cell_size * 5, cell_size),
+            Pawn(WHITE, cell_size * 6, cell_size), Pawn(WHITE, cell_size * 7, cell_size)
         ]
         self.field[6] = [
-            Pawn(BLACK), Pawn(BLACK), Pawn(BLACK), Pawn(BLACK),
-            Pawn(BLACK), Pawn(BLACK), Pawn(BLACK), Pawn(BLACK)
+            Pawn(BLACK, 0, cell_size * 6), Pawn(BLACK, cell_size, cell_size * 6),
+            Pawn(BLACK, cell_size * 2, cell_size * 6), Pawn(BLACK, cell_size * 3, cell_size * 6),
+            Pawn(BLACK, cell_size * 4, cell_size * 6), Pawn(BLACK, cell_size * 5, cell_size * 6),
+            Pawn(BLACK, cell_size * 6, cell_size * 6), Pawn(BLACK, cell_size * 7, cell_size * 6)
         ]
         self.field[7] = [
-            Rook(BLACK, 0, cell_size * 7), Knight(BLACK),
+            Rook(BLACK, 0, cell_size * 7), Knight(BLACK, cell_size, cell_size * 7),
             Bishop(BLACK, cell_size * 2, cell_size * 7), Queen(BLACK, cell_size * 3, cell_size * 7),
             King(BLACK, cell_size * 4, cell_size * 7), Bishop(BLACK, cell_size * 5, cell_size * 7),
-            Knight(BLACK), Rook(BLACK, cell_size * 7, cell_size * 7)
+            Knight(BLACK, cell_size * 6, cell_size * 7), Rook(BLACK, cell_size * 7, cell_size * 7)
         ]
         self.image = pygame.Surface((WIDTH, HEIGHT))
         self.rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
         self.image.fill((255, 255, 255))
+        print(self.field)
         for i in range(0, WIDTH, cell_size):
             for j in range(0 if i % (cell_size * 2) == 0 else cell_size, WIDTH, cell_size * 2):
                 pygame.draw.rect(self.image, (0, 0, 0), (i, WIDTH - j - cell_size, cell_size, cell_size))
@@ -180,10 +185,16 @@ class Rook(pygame.sprite.Sprite):
         return self.can_move(board, row, col, row1, col1)
 
 
-class Pawn:
+class Pawn(pygame.sprite.Sprite):
 
-    def __init__(self, color):
+    def __init__(self, color, x, y):
+        super().__init__(all_sprites)
         self.color = color
+        if self.color == WHITE:
+            self.image = pygame.transform.scale(load_image('Wpawn.png'), (cell_size, cell_size))
+        else:
+            self.image = pygame.transform.scale(load_image('bpawn.png'), (cell_size, cell_size))
+        self.rect, self.rect.x, self.rect.y = self.image.get_rect(), x, y
 
     def get_color(self):
         return self.color
@@ -224,10 +235,17 @@ class Pawn:
                 and (col + 1 == col1 or col - 1 == col1))
 
 
-class Knight:
+class Knight(pygame.sprite.Sprite):
 
-    def __init__(self, color):
+    def __init__(self, color, x, y):
+        super().__init__(all_sprites)
         self.color = color
+        if self.color == WHITE:
+            self.image = load_image("Wknight.png")
+        else:
+            self.image = load_image("bknight.png")
+        self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
+        self.rect, self.rect.x, self.rect.y = self.image.get_rect(), x, y
 
     def get_color(self):
         return self.color
