@@ -58,8 +58,8 @@ class Board(pygame.sprite.Sprite):
         for row in range(8):
             self.field.append([None] * 8)
         self.field[0] = [
-            Rook(WHITE), Knight(WHITE), Bishop(WHITE, 200, 0), Queen(WHITE),
-            King(WHITE), Bishop(WHITE, 500, 0), Knight(WHITE), Rook(WHITE)
+            Rook(WHITE, 0, 0), Knight(WHITE), Bishop(WHITE, 200, 0), Queen(WHITE),
+            King(WHITE), Bishop(WHITE, 500, 0), Knight(WHITE), Rook(WHITE, 700, 0)
         ]
         self.field[1] = [
             Pawn(WHITE), Pawn(WHITE), Pawn(WHITE), Pawn(WHITE),
@@ -70,8 +70,8 @@ class Board(pygame.sprite.Sprite):
             Pawn(BLACK), Pawn(BLACK), Pawn(BLACK), Pawn(BLACK)
         ]
         self.field[7] = [
-            Rook(BLACK), Knight(BLACK), Bishop(BLACK, 200, 700), Queen(BLACK),
-            King(BLACK), Bishop(BLACK, 500, 700), Knight(BLACK), Rook(BLACK)
+            Rook(BLACK, 0, 700), Knight(BLACK), Bishop(BLACK, 200, 700), Queen(BLACK),
+            King(BLACK), Bishop(BLACK, 500, 700), Knight(BLACK), Rook(BLACK, 700, 700)
         ]
         self.image = pygame.Surface((WIDTH, HEIGHT))
         self.rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
@@ -128,10 +128,20 @@ class Board(pygame.sprite.Sprite):
         return True
 
 
-class Rook:
+class Rook(pygame.sprite.Sprite):
 
-    def __init__(self, color):
+    def __init__(self, color, x, y):
+        super().__init__(all_sprites)
         self.color = color
+        self.size = 100
+        if self.color == WHITE:
+            self.image = load_image('Wrook.png')
+        else:
+            self.image = load_image('brook.png')
+        self.image = pygame.transform.scale(self.image, (self.size, self.size))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
 
     def get_color(self):
         return self.color
