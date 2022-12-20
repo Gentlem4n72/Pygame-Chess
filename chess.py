@@ -7,6 +7,7 @@ BLACK = 2
 WIDTH = 800
 HEIGHT = 800
 
+
 def load_image(name, colorkey=None):
     fullname = os.path.join('figures', name)
     # если файл не существует, то выходим
@@ -16,11 +17,13 @@ def load_image(name, colorkey=None):
     image = pygame.image.load(fullname)
     return image
 
+
 def opponent(color):
     if color == WHITE:
         return BLACK
     else:
         return WHITE
+
 
 def main():
     # Создаём шахматную доску
@@ -58,8 +61,10 @@ class Board(pygame.sprite.Sprite):
         for row in range(8):
             self.field.append([None] * 8)
         self.field[0] = [
-            Rook(WHITE), Knight(WHITE), Bishop(WHITE, 200, 0), Queen(WHITE),
-            King(WHITE), Bishop(WHITE, 500, 0), Knight(WHITE), Rook(WHITE)
+            Rook(WHITE), Knight(WHITE),
+            Bishop(WHITE, cell_size * 2, 0), Queen(WHITE, cell_size * 3, 0),
+            King(WHITE, cell_size * 4, 0), Bishop(WHITE, cell_size * 5, 0),
+            Knight(WHITE), Rook(WHITE)
         ]
         self.field[1] = [
             Pawn(WHITE), Pawn(WHITE), Pawn(WHITE), Pawn(WHITE),
@@ -70,8 +75,10 @@ class Board(pygame.sprite.Sprite):
             Pawn(BLACK), Pawn(BLACK), Pawn(BLACK), Pawn(BLACK)
         ]
         self.field[7] = [
-            Rook(BLACK), Knight(BLACK), Bishop(BLACK, 200, 700), Queen(BLACK),
-            King(BLACK), Bishop(BLACK, 500, 700), Knight(BLACK), Rook(BLACK)
+            Rook(BLACK), Knight(BLACK),
+            Bishop(BLACK, cell_size * 2, cell_size * 7), Queen(BLACK, cell_size * 3, cell_size * 7),
+            King(BLACK, cell_size * 4, cell_size * 7), Bishop(BLACK, cell_size * 5, cell_size * 7),
+            Knight(BLACK), Rook(BLACK)
         ]
         self.image = pygame.Surface((WIDTH, HEIGHT))
         self.rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
@@ -230,10 +237,13 @@ class Knight:
         return self.can_move(self, board, row, col, row1, col1)
 
 
-class King:
-
-    def __init__(self, color):
+class King(pygame.sprite.Sprite):
+    def __init__(self, color, x, y):
+        super().__init__(all_sprites)
         self.color = color
+        self.image = load_image('Wking.png') if self.color == WHITE else load_image('Bking.png')
+        self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
+        self.rect = self.image.get_rect().move(x, y)
 
     def get_color(self):
         return self.color
@@ -252,10 +262,13 @@ class King:
         return self.can_move(self, board, row, col, row1, col1)
 
 
-class Queen:
-
-    def __init__(self, color):
+class Queen(pygame.sprite.Sprite):
+    def __init__(self, color, x, y):
+        super().__init__(all_sprites)
         self.color = color
+        self.image = load_image('Wqueen.png') if self.color == WHITE else load_image('Bqueen.png')
+        self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
+        self.rect = self.image.get_rect().move(x, y)
 
     def get_color(self):
         return self.color
