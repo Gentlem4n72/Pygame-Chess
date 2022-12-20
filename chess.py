@@ -1,3 +1,4 @@
+import os
 import sys
 import pygame
 
@@ -5,6 +6,15 @@ WHITE = 1
 BLACK = 2
 WIDTH = 800
 HEIGHT = 800
+
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    # если файл не существует, то выходим
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
+    return image
 
 def opponent(color):
     if color == WHITE:
