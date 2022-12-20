@@ -8,7 +8,7 @@ WIDTH = 800
 HEIGHT = 800
 
 def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
+    fullname = os.path.join('figures', name)
     # если файл не существует, то выходим
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
@@ -58,8 +58,8 @@ class Board(pygame.sprite.Sprite):
         for row in range(8):
             self.field.append([None] * 8)
         self.field[0] = [
-            Rook(WHITE), Knight(WHITE), Bishop(WHITE), Queen(WHITE),
-            King(WHITE), Bishop(WHITE), Knight(WHITE), Rook(WHITE)
+            Rook(WHITE), Knight(WHITE), Bishop(WHITE, 200, 0), Queen(WHITE),
+            King(WHITE), Bishop(WHITE, 500, 0), Knight(WHITE), Rook(WHITE)
         ]
         self.field[1] = [
             Pawn(WHITE), Pawn(WHITE), Pawn(WHITE), Pawn(WHITE),
@@ -70,8 +70,8 @@ class Board(pygame.sprite.Sprite):
             Pawn(BLACK), Pawn(BLACK), Pawn(BLACK), Pawn(BLACK)
         ]
         self.field[7] = [
-            Rook(BLACK), Knight(BLACK), Bishop(BLACK), Queen(BLACK),
-            King(BLACK), Bishop(BLACK), Knight(BLACK), Rook(BLACK)
+            Rook(BLACK), Knight(BLACK), Bishop(BLACK, 200, 700), Queen(BLACK),
+            King(BLACK), Bishop(BLACK, 500, 700), Knight(BLACK), Rook(BLACK)
         ]
         self.image = pygame.Surface((WIDTH, HEIGHT))
         self.rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
@@ -292,10 +292,13 @@ class Queen:
         return self.can_move(self, board, row, col, row1, col1)
 
 
-class Bishop:
-
-    def __init__(self, color):
+class Bishop(pygame.sprite.Sprite):
+    def __init__(self, color, x, y):
+        super().__init__(all_sprites)
         self.color = color
+        self.image = load_image('Wbishop.png') if self.color == WHITE else load_image('Bbishop.png')
+        self.image = pygame.transform.scale(self.image, (100, 100))
+        self.rect = self.image.get_rect().move(x, y)
 
     def get_color(self):
         return self.color
