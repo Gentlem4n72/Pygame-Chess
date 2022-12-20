@@ -18,7 +18,6 @@ def main():
     # Цикл ввода команд игроков
     while True:
         # Выводим положение фигур на доске
-        draw_table()
         # Выводим приглашение игроку нужного цвета
         if board.current_player_color() == WHITE:
             print('Ход белых:')
@@ -308,6 +307,7 @@ class Bishop:
 
     def can_attack(self, board, row, col, row1, col1):
         return self.can_move(self, board, row, col, row1, col1)
+
 
 if __name__ == "__main__":
     running = True
