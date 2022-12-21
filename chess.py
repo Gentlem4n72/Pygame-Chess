@@ -112,32 +112,39 @@ class Board(pygame.sprite.Sprite):
         else:
             return None
 
-    def move_piece(self, row, col, row1, col1):
-        '''Переместить фигуру из точки (row, col) в точку (row1, col1).
-        Если перемещение возможно, метод выполнит его и вернёт True.
-        Если нет --- вернёт False'''
+    def move_piece(self, row, col):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    row1, col1 = self.get_cell(event.pos)
+                    if not correct_coords(row, col) or not correct_coords(row1, col1):
+                        return False
+                    if row == row1 and col == col1:
+                        return False  # нельзя пойти в ту же клетку
+                    piece = self.field[row][col]
+                    if piece is None:
+                        return False
+                    if piece.get_color() != self.color:
+                        return False
+                    if self.field[row1][col1] is None:
+                        if not piece.can_move(self, row, col, row1, col1):
+                            return False
+                    elif self.field[row1][col1].get_color() == opponent(piece.get_color()):
+                        if not piece.can_attack(self, row, col, row1, col1):
+                            return False
+                    else:
+                        return False
+                    self.field[row][col] = None  # Снять фигуру.
+                    self.field[event.pos[0]][event.pos[1]] = piece  # Поставить на новое место.
+                    self.color = opponent(self.color)
+                    return True
 
-        if not correct_coords(row, col) or not correct_coords(row1, col1):
-            return False
-        if row == row1 and col == col1:
-            return False  # нельзя пойти в ту же клетку
-        piece = self.field[row][col]
-        if piece is None:
-            return False
-        if piece.get_color() != self.color:
-            return False
-        if self.field[row1][col1] is None:
-            if not piece.can_move(self, row, col, row1, col1):
-                return False
-        elif self.field[row1][col1].get_color() == opponent(piece.get_color()):
-            if not piece.can_attack(self, row, col, row1, col1):
-                return False
-        else:
-            return False
-        self.field[row][col] = None  # Снять фигуру.
-        self.field[row1][col1] = piece  # Поставить на новое место.
-        self.color = opponent(self.color)
-        return True
+    def get_cell(self, mouse_pos):
+        y = mouse_pos[1] // cell_size
+        x = mouse_pos[0] // cell_size
+        return (x, y)
 
 
 class Rook(pygame.sprite.Sprite):
@@ -368,13 +375,17 @@ if __name__ == "__main__":
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     all_sprites = pygame.sprite.Group()
-
+    flag = False
     cell_size = WIDTH // 8
     board = Board()
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = board.get_cell(event.pos)
+                board.move_piece(x, y)
+
         all_sprites.draw(screen)
         pygame.display.flip()
     pygame.quit()
