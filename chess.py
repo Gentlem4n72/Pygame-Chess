@@ -138,6 +138,8 @@ class Board(pygame.sprite.Sprite):
                     if self.field[row1][col1] is None:
                         if not piece.can_move(self, row, col, row1, col1):
                             return False
+                    else:
+                        return False
                     self.field[row][col] = None  # Снять фигуру.
                     self.field[row1][col1] = piece  # Поставить на новое место.
                     piece.rect.x, piece.rect.y = get_pixels((col1, row1))
