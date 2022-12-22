@@ -52,6 +52,16 @@ def correct_coords(row, col):
     внутри доски'''
     return 0 <= row < 8 and 0 <= col < 8
 
+def get_cell(coords):
+    ny = coords[1] // cell_size
+    nx = coords[0] // cell_size
+    return nx, ny
+
+def get_pixels(coords):
+    ny = coords[1] * cell_size
+    nx = coords[0] * cell_size
+    return nx, ny
+
 
 class Board(pygame.sprite.Sprite):
     def __init__(self):
@@ -86,11 +96,10 @@ class Board(pygame.sprite.Sprite):
         ]
         self.image = pygame.Surface((WIDTH, HEIGHT))
         self.rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
-        self.image.fill((255, 255, 255))
-        print(self.field)
+        self.image.fill('#f0dab5')
         for i in range(0, WIDTH, cell_size):
             for j in range(0 if i % (cell_size * 2) == 0 else cell_size, WIDTH, cell_size * 2):
-                pygame.draw.rect(self.image, (0, 0, 0), (i, WIDTH - j - cell_size, cell_size, cell_size))
+                pygame.draw.rect(self.image, '#b58763', (i, WIDTH - j - cell_size, cell_size, cell_size))
 
     def current_player_color(self):
         return self.color
@@ -112,13 +121,13 @@ class Board(pygame.sprite.Sprite):
         else:
             return None
 
-    def move_piece(self, row, col):
+    def move_piece(self, col, row):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    row1, col1 = self.get_cell(event.pos)
+                    col1, row1 = get_cell(event.pos)
                     if not correct_coords(row, col) or not correct_coords(row1, col1):
                         return False
                     if row == row1 and col == col1:
@@ -137,18 +146,13 @@ class Board(pygame.sprite.Sprite):
                     else:
                         return False
                     self.field[row][col] = None  # Снять фигуру.
-                    self.field[event.pos[0]][event.pos[1]] = piece  # Поставить на новое место.
+                    self.field[row1][col1] = piece  # Поставить на новое место.
+                    piece.rect.x, piece.rect.y = get_pixels((col1, row1))
                     self.color = opponent(self.color)
                     return True
 
-    def get_cell(self, mouse_pos):
-        y = mouse_pos[1] // cell_size
-        x = mouse_pos[0] // cell_size
-        return (x, y)
-
 
 class Rook(pygame.sprite.Sprite):
-
     def __init__(self, color, x, y):
         super().__init__(all_sprites)
         self.color = color
@@ -158,9 +162,7 @@ class Rook(pygame.sprite.Sprite):
             self.image = load_image('brook.png')
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-
+        self.rect.x, self.rect.y = x, y
 
     def get_color(self):
         return self.color
@@ -191,17 +193,21 @@ class Rook(pygame.sprite.Sprite):
     def can_attack(self, board, row, col, row1, col1):
         return self.can_move(board, row, col, row1, col1)
 
+    def update(self):
+        pass
+
 
 class Pawn(pygame.sprite.Sprite):
-
     def __init__(self, color, x, y):
         super().__init__(all_sprites)
+        self.coords = get_cell((x, y))
         self.color = color
         if self.color == WHITE:
             self.image = pygame.transform.scale(load_image('Wpawn.png'), (cell_size, cell_size))
         else:
             self.image = pygame.transform.scale(load_image('bpawn.png'), (cell_size, cell_size))
-        self.rect, self.rect.x, self.rect.y = self.image.get_rect(), x, y
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = x, y
 
     def get_color(self):
         return self.color
@@ -241,9 +247,11 @@ class Pawn(pygame.sprite.Sprite):
         return (row + direction == row1
                 and (col + 1 == col1 or col - 1 == col1))
 
+    def update(self):
+        pass
+
 
 class Knight(pygame.sprite.Sprite):
-
     def __init__(self, color, x, y):
         super().__init__(all_sprites)
         self.color = color
@@ -252,7 +260,8 @@ class Knight(pygame.sprite.Sprite):
         else:
             self.image = load_image("bknight.png")
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
-        self.rect, self.rect.x, self.rect.y = self.image.get_rect(), x, y
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = x, y
 
     def get_color(self):
         return self.color
@@ -271,14 +280,19 @@ class Knight(pygame.sprite.Sprite):
     def can_attack(self, board, row, col, row1, col1):
         return self.can_move(self, board, row, col, row1, col1)
 
+    def update(self):
+        pass
+
 
 class King(pygame.sprite.Sprite):
     def __init__(self, color, x, y):
         super().__init__(all_sprites)
+        self.coords = get_cell((x, y))
         self.color = color
         self.image = load_image('Wking.png') if self.color == WHITE else load_image('Bking.png')
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
         self.rect = self.image.get_rect().move(x, y)
+        self.rect.x, self.rect.y = x, y
 
     def get_color(self):
         return self.color
@@ -296,14 +310,19 @@ class King(pygame.sprite.Sprite):
     def can_attack(self, board, row, col, row1, col1):
         return self.can_move(self, board, row, col, row1, col1)
 
+    def update(self):
+        pass
+
 
 class Queen(pygame.sprite.Sprite):
     def __init__(self, color, x, y):
         super().__init__(all_sprites)
+        self.coords = get_cell((x, y))
         self.color = color
         self.image = load_image('Wqueen.png') if self.color == WHITE else load_image('Bqueen.png')
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
         self.rect = self.image.get_rect().move(x, y)
+        self.rect.x, self.rect.y = x, y
 
     def get_color(self):
         return self.color
@@ -339,14 +358,19 @@ class Queen(pygame.sprite.Sprite):
     def can_attack(self, board, row, col, row1, col1):
         return self.can_move(self, board, row, col, row1, col1)
 
+    def update(self):
+        pass
+
 
 class Bishop(pygame.sprite.Sprite):
     def __init__(self, color, x, y):
         super().__init__(all_sprites)
+        self.coords = get_cell((x, y))
         self.color = color
         self.image = load_image('Wbishop.png') if self.color == WHITE else load_image('Bbishop.png')
         self.image = pygame.transform.scale(self.image, (100, 100))
         self.rect = self.image.get_rect().move(x, y)
+        self.rect.x, self.rect.y = x, y
 
     def get_color(self):
         return self.color
@@ -369,6 +393,9 @@ class Bishop(pygame.sprite.Sprite):
     def can_attack(self, board, row, col, row1, col1):
         return self.can_move(self, board, row, col, row1, col1)
 
+    def update(self):
+        pass
+
 
 if __name__ == "__main__":
     running = True
@@ -383,9 +410,9 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = board.get_cell(event.pos)
+                x, y = get_cell(event.pos)
                 board.move_piece(x, y)
-
+        all_sprites.update()
         all_sprites.draw(screen)
         pygame.display.flip()
     pygame.quit()
