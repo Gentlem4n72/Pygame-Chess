@@ -137,7 +137,7 @@ class Board(pygame.sprite.Sprite):
                         if not piece.can_move(self, row, col, row1, col1):
                             return False
                     else:
-                        if piece.can_attack(self, row, col, row1, col1):
+                        if piece.can_attack(self, row, col, row1, col1) and self.field[row1][col1].color != piece.color:
                             pygame.sprite.spritecollide(self.field[row1][col1], all_pieces, True)
                             self.field[row1][col1] = None
                         else:
