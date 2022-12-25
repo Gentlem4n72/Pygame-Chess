@@ -18,6 +18,17 @@ def load_image(name, colorkey=None):
     return image
 
 
+def castling(filed: list, row: int, col: int, col1: int, step: int) -> bool:
+    if step == -1:
+        col -= 1
+    else:
+        col += 1
+    for i in range(col, col1, step):
+        if filed[row][i]:
+            print(filed[row][i])
+            return False
+    return True
+
 def opponent(color):
     if color == WHITE:
         return BLACK
@@ -72,8 +83,8 @@ class Board(pygame.sprite.Sprite):
             self.field.append([None] * 8)
         self.field[0] = [
             Rook(WHITE, 0, 0), Knight(WHITE, cell_size, 0),
-            Bishop(WHITE, cell_size * 2, 0), Queen(WHITE, cell_size * 3, 0),
-            King(WHITE, cell_size * 4, 0), Bishop(WHITE, cell_size * 5, 0),
+            Bishop(WHITE, cell_size * 2, 0), King(WHITE, cell_size * 3, 0),
+            Queen(WHITE, cell_size * 4, 0), Bishop(WHITE, cell_size * 5, 0),
             Knight(WHITE, cell_size * 6, 0), Rook(WHITE, cell_size * 7, 0)
         ]
         self.field[1] = [
@@ -90,8 +101,8 @@ class Board(pygame.sprite.Sprite):
         ]
         self.field[7] = [
             Rook(BLACK, 0, cell_size * 7), Knight(BLACK, cell_size, cell_size * 7),
-            Bishop(BLACK, cell_size * 2, cell_size * 7), Queen(BLACK, cell_size * 3, cell_size * 7),
-            King(BLACK, cell_size * 4, cell_size * 7), Bishop(BLACK, cell_size * 5, cell_size * 7),
+            Bishop(BLACK, cell_size * 2, cell_size * 7), King(BLACK, cell_size * 3, cell_size * 7),
+            Queen(BLACK, cell_size * 4, cell_size * 7), Bishop(BLACK, cell_size * 5, cell_size * 7),
             Knight(BLACK, cell_size * 6, cell_size * 7), Rook(BLACK, cell_size * 7, cell_size * 7)
         ]
         self.image = pygame.Surface((WIDTH, HEIGHT))
@@ -140,12 +151,39 @@ class Board(pygame.sprite.Sprite):
                         if piece.can_attack(self, row, col, row1, col1) and self.field[row1][col1].color != piece.color:
                             pygame.sprite.spritecollide(self.field[row1][col1], all_pieces, True)
                             self.field[row1][col1] = None
+                        elif (row == row1 and
+                              self.field[row1][col1].char() == 'R' and
+                              self.field[row][col].char() == 'K' and
+                              self.field[row][col].turn == 0):
+                            step = -1 if col >= col1 else 1
+                            if castling(self.field, row, col, col1, step):
+                                rook = self.field[row1][col1]
+                                if step == -1:
+                                    self.field[row][col] = None
+                                    self.field[row][col - 2] = piece
+                                    self.field[row1][col1] = None
+                                    self.field[row1][col1 + 2] = rook
+                                    piece.rect.x, piece.rect.y = get_pixels((col - 2, row))
+                                    rook.rect.x, piece.rect.y = get_pixels((col1 + 2, row1))
+                                elif step == 1:
+                                    self.field[row][col] = None
+                                    self.field[row][col + 2] = piece
+                                    self.field[row1][col1] = None
+                                    self.field[row1][col1 - 3] = rook
+                                    piece.rect.x, piece.rect.y = get_pixels((col + 2, row))
+                                    rook.rect.x, piece.rect.y = get_pixels((col1 - 3, row1))
+                                    self.color = opponent(self.color)
+                                return True
+                            else:
+                                return False
                         else:
                             return False
                     self.field[row][col] = None  # Снять фигуру.
                     self.field[row1][col1] = piece  # Поставить на новое место.
                     piece.rect.x, piece.rect.y = get_pixels((col1, row1))
                     self.color = opponent(self.color)
+                    if piece.char() == 'K':
+                        piece.turn += 1
                     return True
 
 
@@ -241,9 +279,6 @@ class Pawn(pygame.sprite.Sprite):
         return (row + direction == row1
                 and (col + 1 == col1 or col - 1 == col1))
 
-    def can_attack(self, board, row, col, row1, col1):
-        return self.can_move(board, row, col, row1, col1)
-
 
 class Knight(pygame.sprite.Sprite):
     def __init__(self, color, x, y):
@@ -284,6 +319,7 @@ class King(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
         self.rect = self.image.get_rect().move(x, y)
         self.rect.x, self.rect.y = x, y
+        self.turn = 0
 
     def get_color(self):
         return self.color
@@ -297,9 +333,6 @@ class King(pygame.sprite.Sprite):
         if delta_row <= 1 and delta_col <= 1:
             return True
         return False
-
-    def can_attack(self, board, row, col, row1, col1):
-        return self.can_move(self, board, row, col, row1, col1)
 
     def can_attack(self, board, row, col, row1, col1):
         return self.can_move(board, row, col, row1, col1)
@@ -374,9 +407,12 @@ class Bishop(pygame.sprite.Sprite):
             return False
 
         step = 1 if (row1 >= row) else -1
-        for i in range(row + step, row1, step):
-            if not (board.get_piece(row + i, col + i) is None):
+        direction = 1 if col >= col1 else -1
+        for i in range(row + step, row1 + 1, step):
+            x = board.get_piece(row + i, col - i * direction)
+            if not (board.get_piece(row + i, col - i * direction) is None):
                 return False
+        return True
 
     def can_attack(self, board, row, col, row1, col1):
         return self.can_move(board, row, col, row1, col1)
