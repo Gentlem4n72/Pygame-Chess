@@ -172,7 +172,8 @@ class Board(pygame.sprite.Sprite):
                                     self.field[row1][col1 - 3] = rook
                                     piece.rect.x, piece.rect.y = get_pixels((col + 2, row))
                                     rook.rect.x, piece.rect.y = get_pixels((col1 - 3, row1))
-                                    self.color = opponent(self.color)
+                                self.color = opponent(self.color)
+                                piece.turn += 1
                                 return True
                             else:
                                 return False
