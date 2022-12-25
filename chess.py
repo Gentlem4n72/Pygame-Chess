@@ -115,7 +115,7 @@ class Board(pygame.sprite.Sprite):
         c = 'w' if color == WHITE else 'b'
         return c + piece.char()
 
-    def get_piece(self, col, row):
+    def get_piece(self, row, col):
         if correct_coords(row, col):
             return self.field[row][col]
         else:
@@ -137,9 +137,11 @@ class Board(pygame.sprite.Sprite):
                         if not piece.can_move(self, row, col, row1, col1):
                             return False
                     else:
-                        if piece.can_move(self, row, col, row1, col1) or piece.can_attack(self, row, col, row1, col1):
+                        if piece.can_attack(self, row, col, row1, col1):
                             pygame.sprite.spritecollide(self.field[row1][col1], all_pieces, True)
                             self.field[row1][col1] = None
+                        else:
+                            return False
                     self.field[row][col] = None  # Снять фигуру.
                     self.field[row1][col1] = piece  # Поставить на новое место.
                     piece.rect.x, piece.rect.y = get_pixels((col1, row1))
@@ -185,8 +187,8 @@ class Rook(pygame.sprite.Sprite):
 
         return True
 
-    def update(self):
-        pass
+    def can_attack(self, board, row, col, row1, col1):
+        return self.can_move(board, row, col, row1, col1)
 
 
 class Pawn(pygame.sprite.Sprite):
@@ -239,8 +241,8 @@ class Pawn(pygame.sprite.Sprite):
         return (row + direction == row1
                 and (col + 1 == col1 or col - 1 == col1))
 
-    def update(self):
-        pass
+    def can_attack(self, board, row, col, row1, col1):
+        return self.can_move(board, row, col, row1, col1)
 
 
 class Knight(pygame.sprite.Sprite):
@@ -269,8 +271,8 @@ class Knight(pygame.sprite.Sprite):
             return True
         return False
 
-    def update(self):
-        pass
+    def can_attack(self, board, row, col, row1, col1):
+        return self.can_move(board, row, col, row1, col1)
 
 
 class King(pygame.sprite.Sprite):
@@ -299,8 +301,8 @@ class King(pygame.sprite.Sprite):
     def can_attack(self, board, row, col, row1, col1):
         return self.can_move(self, board, row, col, row1, col1)
 
-    def update(self):
-        pass
+    def can_attack(self, board, row, col, row1, col1):
+        return self.can_move(board, row, col, row1, col1)
 
 
 class Queen(pygame.sprite.Sprite):
@@ -344,8 +346,8 @@ class Queen(pygame.sprite.Sprite):
 
         return False
 
-    def update(self):
-        pass
+    def can_attack(self, board, row, col, row1, col1):
+        return self.can_move(board, row, col, row1, col1)
 
 
 class Bishop(pygame.sprite.Sprite):
@@ -376,8 +378,8 @@ class Bishop(pygame.sprite.Sprite):
             if not (board.get_piece(row + i, col + i) is None):
                 return False
 
-    def update(self):
-        pass
+    def can_attack(self, board, row, col, row1, col1):
+        return self.can_move(board, row, col, row1, col1)
 
 
 if __name__ == "__main__":
