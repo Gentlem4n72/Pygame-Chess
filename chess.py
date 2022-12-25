@@ -115,7 +115,7 @@ class Board(pygame.sprite.Sprite):
         c = 'w' if color == WHITE else 'b'
         return c + piece.char()
 
-    def get_piece(self, row, col):
+    def get_piece(self, col, row):
         if correct_coords(row, col):
             return self.field[row][col]
         else:
@@ -133,13 +133,13 @@ class Board(pygame.sprite.Sprite):
                     if (col, row) == (col1, row1):
                         return False
                     piece = self.field[row][col]
-                    if not piece.can_move(self, row, col, row1, col1):
-                        return False
                     if self.field[row1][col1] is None:
                         if not piece.can_move(self, row, col, row1, col1):
                             return False
                     else:
-                        return False
+                        if piece.can_move(self, row, col, row1, col1) or piece.can_attack(self, row, col, row1, col1):
+                            pygame.sprite.spritecollide(self.field[row1][col1], all_pieces, True)
+                            self.field[row1][col1] = None
                     self.field[row][col] = None  # Снять фигуру.
                     self.field[row1][col1] = piece  # Поставить на новое место.
                     piece.rect.x, piece.rect.y = get_pixels((col1, row1))
@@ -261,7 +261,7 @@ class Knight(pygame.sprite.Sprite):
     def char(self):
         return 'N'  # kNight, буква 'K' уже занята королём
 
-    def can_move(self, field, row, col, row1, col1):
+    def can_move(self, board, row, col, row1, col1):
         delta_row = abs(row1 - row)
         delta_col = abs(col1 - col)
         if (delta_row == 2 and delta_col == 1 or
@@ -290,9 +290,9 @@ class King(pygame.sprite.Sprite):
         return 'K'
 
     def can_move(self, board, row, col, row1, col1):
-        delta_row = abs(row1 - row)
-        delta_col = abs(col1 - col)
-        if delta_row == 1 or delta_col == 1:
+        delta_row = abs(row - row1)
+        delta_col = abs(col - col1)
+        if delta_row <= 1 and delta_col <= 1:
             return True
         return False
 
