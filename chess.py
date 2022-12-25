@@ -241,6 +241,9 @@ class Pawn(pygame.sprite.Sprite):
         return (row + direction == row1
                 and (col + 1 == col1 or col - 1 == col1))
 
+    def can_attack(self, board, row, col, row1, col1):
+        return self.can_move(board, row, col, row1, col1)
+
 
 class Knight(pygame.sprite.Sprite):
     def __init__(self, color, x, y):
@@ -371,10 +374,9 @@ class Bishop(pygame.sprite.Sprite):
             return False
 
         step = 1 if (row1 >= row) else -1
-        for i in range(row + step, row1 + 1, step):
-            if not (board.get_piece(row + i, col - i) is None):
+        for i in range(row + step, row1, step):
+            if not (board.get_piece(row + i, col + i) is None):
                 return False
-        return True
 
     def can_attack(self, board, row, col, row1, col1):
         return self.can_move(board, row, col, row1, col1)
