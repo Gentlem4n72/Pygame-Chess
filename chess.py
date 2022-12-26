@@ -18,16 +18,17 @@ def load_image(name, colorkey=None):
     return image
 
 
-def castling(filed: list, row: int, col: int, col1: int, step: int) -> bool:
+def castling(fieled: list, row: int, col: int, col1: int, step: int) -> bool:
     if step == -1:
         col -= 1
     else:
         col += 1
     for i in range(col, col1, step):
-        if filed[row][i]:
-            print(filed[row][i])
+        if fieled[row][i]:
+            print(fieled[row][i])
             return False
     return True
+
 
 def opponent(color):
     if color == WHITE:
@@ -63,10 +64,12 @@ def correct_coords(row, col):
     внутри доски'''
     return 0 <= row < 8 and 0 <= col < 8
 
+
 def get_cell(coords):
     ny = coords[1] // cell_size
     nx = coords[0] // cell_size
     return nx, ny
+
 
 def get_pixels(coords):
     ny = coords[1] * cell_size
