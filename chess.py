@@ -18,14 +18,14 @@ def load_image(name, colorkey=None):
     return image
 
 
-def castling(fieled: list, row: int, col: int, col1: int, step: int) -> bool:
+def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
     if step == -1:
         col -= 1
     else:
         col += 1
     for i in range(col, col1, step):
-        if fieled[row][i]:
-            print(fieled[row][i])
+        if field[row][i]:
+            print(field[row][i])
             return False
     return True
 
