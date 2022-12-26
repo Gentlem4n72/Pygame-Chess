@@ -376,8 +376,9 @@ class Queen(pygame.sprite.Sprite):
 
         if delta_col == delta_row:
             step = 1 if (row1 >= row) else -1
+            direction = 1 if col <= col1 else -1
             for i in range(row + step, row1, step):
-                if not (board.get_piece(row + i, col + i) is None):
+                if not (board.get_piece(row + i, col + i * direction) is None):
                     return False
             return True
 
@@ -413,7 +414,6 @@ class Bishop(pygame.sprite.Sprite):
         step = 1 if (row1 >= row) else -1
         direction = 1 if col >= col1 else -1
         for i in range(row + step, row1 + 1, step):
-            x = board.get_piece(row + i, col - i * direction)
             if not (board.get_piece(row + i, col - i * direction) is None):
                 return False
         return True
@@ -440,6 +440,17 @@ if __name__ == "__main__":
                 if (not (board.field[y][x] is None) and
                         board.color == board.field[y][x].get_color()):
                     board.move_piece(x, y)
+                    kings = []
+                    for row in board.field:
+                        for piece in row:
+                            if isinstance(piece, King):
+                                kings.append(piece)
+                    if len(kings) != 2:
+                        if kings[0].color == WHITE:
+                            print('WHITE won')
+                        else:
+                            print('BLACK won')
+                        running = False
         all_sprites.update()
         all_sprites.draw(screen)
         pygame.display.flip()
