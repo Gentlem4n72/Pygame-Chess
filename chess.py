@@ -327,7 +327,9 @@ class King(pygame.sprite.Sprite):
         delta_col = abs(col - col1)
         if delta_row <= 1 and delta_col <= 1:
             if any(map(lambda x: x.can_attack(board, *get_cell((x.rect.y, x.rect.x)),
-                                              *((row1, col1) if isinstance(x, Queen) or isinstance(x, Bishop) else (col1, row1))),
+                                              *((col1, row1) if (isinstance(x, King) or
+                                                                 isinstance(x, Rook))
+                                              else (row1, col1))),
                        filter(lambda x: x.color == opponent(self.color),
                               [x for x in all_pieces.sprites()]))):
                 return False
@@ -373,7 +375,7 @@ class Queen(pygame.sprite.Sprite):
             return True
 
         if delta_col == delta_row:
-            step = 1 if (row1 >= row) else -1
+            step = 1 if row1 <= row else -1
             direction = 1 if col <= col1 else -1
             for i in range(row + step, row1, step):
                 if not (board.get_piece(row + i, col + i * direction) is None):
@@ -413,9 +415,9 @@ class Bishop(pygame.sprite.Sprite):
             return False
 
         step = 1 if (row1 >= row) else -1
-        direction = 1 if col >= col1 else -1
+        direction = 1 if col1 >= col else -1
         for i in range(row + step, row1 + 1, step):
-            if not (board.get_piece(row + i, col - i * direction) is None):
+            if not (board.get_piece(row + i, col + i * direction) is None):
                 return False
         return True
 
