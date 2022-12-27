@@ -36,7 +36,9 @@ def check(field):
             if isinstance(p, King):
                 color = opponent(p.color)
                 if any(map(lambda x: x.can_attack(field, *get_cell((x.rect.y, x.rect.x)),
-                                                  *get_cell((p.rect.y, p.rect.x))),
+                                                  *get_cell(((p.rect.x, p.rect.y) if (isinstance(x, King) or
+                                                                                       isinstance(x, Rook))
+                                                  else (p.rect.y, p.rect.x)))),
                            filter(lambda x: x.color == color,
                                   [x for x in all_pieces.sprites()]))):
                     print('шах чёрным' if color == WHITE else 'шах белым')
