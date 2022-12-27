@@ -33,18 +33,15 @@ def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
 def check(field):
     for r in field.field:
         for p in r:
-            if isinstance(p, King) and p.color == WHITE:
-                if any([*map(lambda x: x.can_attack(field, *get_cell((x.rect.x, x.rect.y)),
-                                                    *get_cell((p.rect.x, p.rect.y))),
-                             filter(lambda x: x.color == BLACK,
-                                    [x for x in all_pieces.sprites()]))]):
-                    print('шах белым')
-            elif isinstance(p, King) and p.color == BLACK:
-                if any([*map(lambda x: x.can_attack(field, *get_cell((x.rect.x, x.rect.y)),
-                                                    *get_cell((p.rect.x, p.rect.y))),
-                             filter(lambda x: x.color == WHITE,
-                                    [x for x in all_pieces.sprites()]))]):
-                    print('шах черным')
+            if isinstance(p, King):
+                color = opponent(p.color)
+                if any(map(lambda x: x.can_attack(field, *get_cell((x.rect.y, x.rect.x)),
+                                                  *get_cell((p.rect.y, p.rect.x))),
+                           filter(lambda x: x.color == color,
+                                  [x for x in all_pieces.sprites()]))):
+                    print('шах чёрным' if color == WHITE else 'шах белым')
+                    return True
+    return False
 
 
 def opponent(color):
@@ -52,28 +49,6 @@ def opponent(color):
         return BLACK
     else:
         return WHITE
-
-
-def main():
-    # Создаём шахматную доску
-    board = Board()
-    # Цикл ввода команд игроков
-    while True:
-        # Выводим положение фигур на доске
-        # Выводим приглашение игроку нужного цвета
-        if board.current_player_color() == WHITE:
-            print('Ход белых:')
-        else:
-            print('Ход чёрных:')
-        command = input()
-        if command == 'exit':
-            break
-        move_type, row, col, row1, col1 = command.split()
-        row, col, row1, col1 = int(row), int(col), int(row1), int(col1)
-        if board.move_piece(row, col, row1, col1):
-            print('Ход успешен')
-        else:
-            print('Координаты некорректы! Попробуйте другой ход!')
 
 
 def correct_coords(row, col):
@@ -194,7 +169,6 @@ class Board(pygame.sprite.Sprite):
                                     rook.rect.x, piece.rect.y = get_pixels((col1 - 3, row1))
                                 self.color = opponent(self.color)
                                 piece.turn += 1
-                                check(self)
                                 return True
                             else:
                                 return False
@@ -206,7 +180,6 @@ class Board(pygame.sprite.Sprite):
                     self.color = opponent(self.color)
                     if piece.char() == 'K':
                         piece.turn += 1
-                    check(self)
                     return True
 
 
@@ -413,7 +386,7 @@ class Bishop(pygame.sprite.Sprite):
         self.coords = get_cell((x, y))
         self.color = color
         self.image = load_image('Wbishop.png') if self.color == WHITE else load_image('Bbishop.png')
-        self.image = pygame.transform.scale(self.image, (100, 100))
+        self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
         self.rect = self.image.get_rect().move(x, y)
         self.rect.x, self.rect.y = x, y
 
@@ -459,16 +432,7 @@ if __name__ == "__main__":
                 if (not (board.field[y][x] is None) and
                         board.color == board.field[y][x].get_color()):
                     board.move_piece(x, y)
-                    kings = []
-                    for row in board.field:
-                        for piece in row:
-                            if isinstance(piece, King):
-                                kings.append(piece)
-                    if len(kings) != 2:
-                        if kings[0].color == WHITE:
-                            print('WHITE won')
-                        else:
-                            print('BLACK won')
+                    if check(board):
                         running = False
         all_sprites.update()
         all_sprites.draw(screen)
