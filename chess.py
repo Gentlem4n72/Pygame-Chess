@@ -36,13 +36,13 @@ def check(field):
             if isinstance(p, King) and p.color == WHITE:
                 if any([*map(lambda x: x.can_attack(field, *get_cell((x.rect.x, x.rect.y)),
                                                     *get_cell((p.rect.x, p.rect.y))),
-                             filter(lambda x: not (isinstance(x, King)) and x.color == BLACK,
+                             filter(lambda x: x.color == BLACK,
                                     [x for x in all_pieces.sprites()]))]):
                     print('шах белым')
             elif isinstance(p, King) and p.color == BLACK:
                 if any([*map(lambda x: x.can_attack(field, *get_cell((x.rect.x, x.rect.y)),
                                                     *get_cell((p.rect.x, p.rect.y))),
-                             filter(lambda x: not (isinstance(x, King)) and x.color == WHITE,
+                             filter(lambda x: x.color == WHITE,
                                     [x for x in all_pieces.sprites()]))]):
                     print('шах черным')
 
