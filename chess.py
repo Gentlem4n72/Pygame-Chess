@@ -30,6 +30,23 @@ def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
     return True
 
 
+def check(field):
+    for r in field.field:
+        for p in r:
+            if isinstance(p, King) and p.color == WHITE:
+                if any([*map(lambda x: x.can_attack(field, *get_cell((x.rect.x, x.rect.y)),
+                                                    *get_cell((p.rect.x, p.rect.y))),
+                             filter(lambda x: not (isinstance(x, King)) and x.color == BLACK,
+                                    [x for x in all_pieces.sprites()]))]):
+                    print('шах белым')
+            elif isinstance(p, King) and p.color == BLACK:
+                if any([*map(lambda x: x.can_attack(field, *get_cell((x.rect.x, x.rect.y)),
+                                                    *get_cell((p.rect.x, p.rect.y))),
+                             filter(lambda x: not (isinstance(x, King)) and x.color == WHITE,
+                                    [x for x in all_pieces.sprites()]))]):
+                    print('шах черным')
+
+
 def opponent(color):
     if color == WHITE:
         return BLACK
@@ -177,6 +194,7 @@ class Board(pygame.sprite.Sprite):
                                     rook.rect.x, piece.rect.y = get_pixels((col1 - 3, row1))
                                 self.color = opponent(self.color)
                                 piece.turn += 1
+                                check(self)
                                 return True
                             else:
                                 return False
@@ -188,6 +206,7 @@ class Board(pygame.sprite.Sprite):
                     self.color = opponent(self.color)
                     if piece.char() == 'K':
                         piece.turn += 1
+                    check(self)
                     return True
 
 
