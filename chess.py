@@ -4,8 +4,9 @@ import pygame
 
 WHITE = 1
 BLACK = 2
-WIDTH = 800
-HEIGHT = 800
+WIDTH = 1700
+HEIGHT = 900
+BOARD_SIZE = 800
 
 
 def load_image(name, colorkey=None):
@@ -31,19 +32,22 @@ def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
 
 
 def check(field):
+    result = [False, False]
     for r in field.field:
         for p in r:
             if isinstance(p, King):
                 color = opponent(p.color)
                 if any(map(lambda x: x.can_attack(field, *get_cell((x.rect.y, x.rect.x)),
                                                   *get_cell(((p.rect.x, p.rect.y) if (isinstance(x, King) or
-                                                                                       isinstance(x, Rook))
+                                                                                      isinstance(x, Rook))
                                                   else (p.rect.y, p.rect.x)))),
                            filter(lambda x: x.color == color,
                                   [x for x in all_pieces.sprites()]))):
-                    print('шах чёрным' if color == WHITE else 'шах белым')
-                    return True
-    return False
+                    if color == BLACK:
+                        result[0] = True
+                    else:
+                        result[1] = True
+    return result
 
 
 def opponent(color):
@@ -60,15 +64,38 @@ def correct_coords(row, col):
 
 
 def get_cell(coords):
-    ny = coords[1] // cell_size
-    nx = coords[0] // cell_size
+    ny = (coords[1] - (HEIGHT - BOARD_SIZE - 50)) // cell_size
+    nx = (coords[0] - (WIDTH - BOARD_SIZE - 50)) // cell_size
     return nx, ny
 
 
 def get_pixels(coords):
-    ny = coords[1] * cell_size
-    nx = coords[0] * cell_size
+    ny = coords[1] * cell_size + HEIGHT - BOARD_SIZE - 50
+    nx = coords[0] * cell_size + WIDTH - BOARD_SIZE - 50
     return nx, ny
+
+
+def draw_menu(screen, board):
+    pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - 75, HEIGHT - BOARD_SIZE - 75,
+                                       BOARD_SIZE + 50, BOARD_SIZE + 50))
+    pygame.draw.rect(screen, 'black', (25, 25, 775, 600), 5)
+    pygame.draw.rect(screen, 'black', (25, 25, 775, 115), 5)
+    pygame.draw.rect(screen, 'black', (150, 750, 525, 125), 5)
+    pygame.draw.rect(screen, '#660000', (155, 755, 515, 115))
+    surr_text = pygame.font.Font(None, 50).render('Сдаться', True, 'white')
+    screen.blit(surr_text, (413 - surr_text.get_width() // 2, 813 - surr_text.get_height() // 2))
+    turn = pygame.font.Font(None, 50).render('Ход ' + ('белых' if board.color == WHITE else 'чёрных'),
+                                             True, 'white')
+    screen.blit(turn, (150 - turn.get_width() // 2, 80 - turn.get_height() // 2))
+    checks = check(board)
+    if checks[0]:
+        check_text = pygame.font.Font(None, 50).render('Шах белым', True, 'white')
+        screen.blit(check_text, (660 - check_text.get_width() // 2,
+                                 55 - check_text.get_height() // 2))
+    if checks[1]:
+        check_text = pygame.font.Font(None, 50).render('Шах чёрным', True, 'white')
+        screen.blit(check_text, (660 - check_text.get_width() // 2,
+                                 105 - check_text.get_height()// 2))
 
 
 class Board(pygame.sprite.Sprite):
@@ -76,34 +103,36 @@ class Board(pygame.sprite.Sprite):
         super().__init__(all_sprites)
         self.color = WHITE
         self.field = []
+        self.indent_h = WIDTH - BOARD_SIZE - 50
+        self.indent_v = HEIGHT - BOARD_SIZE - 50
         for row in range(8):
             self.field.append([None] * 8)
         self.field[0] = [
-            Rook(WHITE, 0, 0), Knight(WHITE, cell_size, 0),
-            Bishop(WHITE, cell_size * 2, 0), King(WHITE, cell_size * 3, 0),
-            Queen(WHITE, cell_size * 4, 0), Bishop(WHITE, cell_size * 5, 0),
-            Knight(WHITE, cell_size * 6, 0), Rook(WHITE, cell_size * 7, 0)
+            Rook(WHITE, self.indent_h, self.indent_v),
+            Knight(WHITE, self.indent_h + cell_size, self.indent_v),
+            Bishop(WHITE, self.indent_h + cell_size * 2, self.indent_v),
+            King(WHITE, self.indent_h + cell_size * 3, self.indent_v),
+            Queen(WHITE, self.indent_h + cell_size * 4, self.indent_v),
+            Bishop(WHITE, self.indent_h + cell_size * 5, self.indent_v),
+            Knight(WHITE, self.indent_h + cell_size * 6, self.indent_v),
+            Rook(WHITE, self.indent_h + cell_size * 7, self.indent_v)
         ]
-        self.field[1] = [
-            Pawn(WHITE, 0, cell_size), Pawn(WHITE, cell_size, cell_size),
-            Pawn(WHITE, cell_size * 2, cell_size), Pawn(WHITE, cell_size * 3, cell_size),
-            Pawn(WHITE, cell_size * 4, cell_size), Pawn(WHITE, cell_size * 5, cell_size),
-            Pawn(WHITE, cell_size * 6, cell_size), Pawn(WHITE, cell_size * 7, cell_size)
-        ]
-        self.field[6] = [
-            Pawn(BLACK, 0, cell_size * 6), Pawn(BLACK, cell_size, cell_size * 6),
-            Pawn(BLACK, cell_size * 2, cell_size * 6), Pawn(BLACK, cell_size * 3, cell_size * 6),
-            Pawn(BLACK, cell_size * 4, cell_size * 6), Pawn(BLACK, cell_size * 5, cell_size * 6),
-            Pawn(BLACK, cell_size * 6, cell_size * 6), Pawn(BLACK, cell_size * 7, cell_size * 6)
-        ]
+        self.field[1] = [Pawn(WHITE, self.indent_h + cell_size * i, self.indent_v + cell_size) for i in range(8)]
+
+        self.field[6] = [Pawn(BLACK, self.indent_h + cell_size * i, self.indent_v + cell_size * 6) for i in range(8)]
+
         self.field[7] = [
-            Rook(BLACK, 0, cell_size * 7), Knight(BLACK, cell_size, cell_size * 7),
-            Bishop(BLACK, cell_size * 2, cell_size * 7), King(BLACK, cell_size * 3, cell_size * 7),
-            Queen(BLACK, cell_size * 4, cell_size * 7), Bishop(BLACK, cell_size * 5, cell_size * 7),
-            Knight(BLACK, cell_size * 6, cell_size * 7), Rook(BLACK, cell_size * 7, cell_size * 7)
+            Rook(BLACK, self.indent_h, self.indent_v + cell_size * 7),
+            Knight(BLACK, self.indent_h + cell_size, self.indent_v + cell_size * 7),
+            Bishop(BLACK, self.indent_h + cell_size * 2, self.indent_v + cell_size * 7),
+            King(BLACK, self.indent_h + cell_size * 3, self.indent_v + cell_size * 7),
+            Queen(BLACK, self.indent_h + cell_size * 4, self.indent_v + cell_size * 7),
+            Bishop(BLACK, self.indent_h + cell_size * 5, self.indent_v + cell_size * 7),
+            Knight(BLACK, self.indent_h + cell_size * 6, self.indent_v + cell_size * 7),
+            Rook(BLACK, self.indent_h + cell_size * 7, self.indent_v + cell_size * 7)
         ]
-        self.image = pygame.Surface((WIDTH, HEIGHT))
-        self.rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
+        self.image = pygame.Surface((800, 800))
+        self.rect = pygame.Rect(WIDTH - BOARD_SIZE - 50, HEIGHT - BOARD_SIZE - 50, WIDTH - 25, HEIGHT - 25)
         self.image.fill('#f0dab5')
         for i in range(0, WIDTH, cell_size):
             for j in range(0 if i % (cell_size * 2) == 0 else cell_size, WIDTH, cell_size * 2):
@@ -134,7 +163,9 @@ class Board(pygame.sprite.Sprite):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if (event.type == pygame.MOUSEBUTTONDOWN and
+                        (self.indent_h <= event.pos[0] <= self.indent_h + BOARD_SIZE and
+                         self.indent_v <= event.pos[1] <= self.indent_v + BOARD_SIZE)):
                     col1, row1 = get_cell(event.pos)
                     if not correct_coords(row, col) or not correct_coords(row1, col1):
                         return False
@@ -185,6 +216,9 @@ class Board(pygame.sprite.Sprite):
                         piece.turn += 1
                     check(self)
                     return True
+
+    def surrender(self):
+        pass
 
 
 class Rook(pygame.sprite.Sprite):
@@ -431,20 +465,28 @@ if __name__ == "__main__":
     running = True
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption('Шах и Мат')
     all_sprites = pygame.sprite.Group()
     all_pieces = pygame.sprite.Group()
     flag = False
-    cell_size = WIDTH // 8
+    cell_size = BOARD_SIZE // 8
     board = Board()
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = get_cell(event.pos)
-                if (not (board.field[y][x] is None) and
-                        board.color == board.field[y][x].get_color()):
-                    board.move_piece(x, y)
+                x, y = event.pos
+                if (board.indent_h <= x <= board.indent_h + BOARD_SIZE and
+                        board.indent_v <= y <= board.indent_v + BOARD_SIZE):
+                    x, y = get_cell((x, y))
+                    if (not (board.field[y][x] is None) and
+                            board.color == board.field[y][x].get_color()):
+                        board.move_piece(x, y)
+                elif 150 <= x <= 675 and 750 <= y <= 825:
+                    board.surrender()
+        screen.fill('#404147')
+        draw_menu(screen, board)
         all_sprites.update()
         all_sprites.draw(screen)
         pygame.display.flip()
