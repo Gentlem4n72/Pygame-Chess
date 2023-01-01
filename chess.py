@@ -95,7 +95,21 @@ def draw_menu(screen, board):
     if checks[1]:
         check_text = pygame.font.Font(None, 50).render('Шах чёрным', True, 'white')
         screen.blit(check_text, (660 - check_text.get_width() // 2,
-                                 105 - check_text.get_height()// 2))
+                                 105 - check_text.get_height() // 2))
+
+def draw_possible_moves(board, row, col):
+    for i in range(8):
+        for j in range(8):
+            piece = board.field[row][col]
+            if (piece.can_attack(board, *[*get_cell((piece.rect.x + 1, piece.rect.y + 1))][::-1], i, j) and
+                  board.field[i][j]):
+                if board.field[i][j].color == opponent(piece.color):
+                    pygame.draw.rect(screen, 'red', (*get_pixels((j, i)), cell_size, cell_size), 5)
+            elif piece.can_move(board, *[*get_cell((piece.rect.x + 1, piece.rect.y + 1))][::-1], i, j):
+                pygame.draw.circle(screen, 'green',
+                                   tuple(map(lambda z: z + cell_size // 2, get_pixels((j, i)))), 10)
+    pygame.draw.rect(screen, 'green', (*get_pixels((col, row)), cell_size, cell_size), 5)
+    pygame.display.flip()
 
 
 class Board(pygame.sprite.Sprite):
@@ -216,6 +230,7 @@ class Board(pygame.sprite.Sprite):
                         piece.turn += 1
                     check(self)
                     return True
+            draw_possible_moves(board, row, col)
 
     def surrender(self):
         pass
@@ -468,7 +483,6 @@ if __name__ == "__main__":
     pygame.display.set_caption('Шах и Мат')
     all_sprites = pygame.sprite.Group()
     all_pieces = pygame.sprite.Group()
-    flag = False
     cell_size = BOARD_SIZE // 8
     board = Board()
     while running:
