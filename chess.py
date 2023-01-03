@@ -38,9 +38,9 @@ def check(field):
             if isinstance(p, King):
                 color = opponent(p.color)
                 if any(map(lambda x: x.can_attack(field, *get_cell((x.rect.y, x.rect.x)),
-                                                  *get_cell(((p.rect.x, p.rect.y) if (isinstance(x, King) or
+                                                  *get_cell(((p.rect.y, p.rect.x) if (isinstance(x, King) or
                                                                                       isinstance(x, Rook))
-                                                  else (p.rect.y, p.rect.x)))),
+                                                  else (p.rect.x, p.rect.y)))),
                            filter(lambda x: x.color == color,
                                   [x for x in all_pieces.sprites()]))):
                     if color == BLACK:
@@ -467,8 +467,8 @@ class Bishop(pygame.sprite.Sprite):
 
         step = 1 if (row1 >= row) else -1
         direction = 1 if col1 >= col else -1
-        for i in range(row + step, row1 + 1, step):
-            if not (board.get_piece(row + i, col + i * direction) is None):
+        for i in range(2, delta_row + 1):
+            if board.get_piece(row + i * step - step, col + i * direction - direction):
                 return False
         return True
 
