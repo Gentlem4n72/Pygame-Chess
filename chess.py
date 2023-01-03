@@ -426,10 +426,10 @@ class Queen(pygame.sprite.Sprite):
             return True
 
         if delta_col == delta_row:
-            step = 1 if row1 <= row else -1
-            direction = 1 if col <= col1 else -1
-            for i in range(row + step, row1, step):
-                if not (board.get_piece(row + i, col + i * direction) is None):
+            step = 1 if (row1 >= row) else -1
+            direction = 1 if col1 >= col else -1
+            for i in range(2, delta_row + 1):
+                if board.get_piece(row + i * step - step, col + i * direction - direction):
                     return False
             return True
 
