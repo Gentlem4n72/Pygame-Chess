@@ -31,6 +31,17 @@ def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
     return True
 
 
+def pawn_conversion(board):
+    for piece in filter(lambda x: isinstance(x, Pawn), all_pieces):
+        x, y = get_cell((piece.rect.x, piece.rect.y))
+        if (piece.color == WHITE and y == 7 or
+                (piece.color == BLACK and y == 0)):
+            choice = draw_selection_dialog()
+            board.field[y][x] = choice(piece.color, piece.rect.x, piece.rect.y)
+            all_pieces.remove(piece)
+            all_sprites.remove(piece)
+
+
 def check(field):
     result = [False, False]
     for r in field.field:
@@ -97,12 +108,13 @@ def draw_menu(screen, board):
         screen.blit(check_text, (660 - check_text.get_width() // 2,
                                  105 - check_text.get_height() // 2))
 
+
 def draw_possible_moves(board, row, col):
     for i in range(8):
         for j in range(8):
             piece = board.field[row][col]
             if (piece.can_attack(board, *[*get_cell((piece.rect.x + 1, piece.rect.y + 1))][::-1], i, j) and
-                  board.field[i][j]):
+                    board.field[i][j]):
                 if board.field[i][j].color == opponent(piece.color):
                     pygame.draw.rect(screen, 'red', (*get_pixels((j, i)), cell_size, cell_size), 5)
             elif piece.can_move(board, *[*get_cell((piece.rect.x + 1, piece.rect.y + 1))][::-1], i, j):
@@ -110,6 +122,35 @@ def draw_possible_moves(board, row, col):
                                    tuple(map(lambda z: z + cell_size // 2, get_pixels((j, i)))), 10)
     pygame.draw.rect(screen, 'green', (*get_pixels((col, row)), cell_size, cell_size), 5)
     pygame.display.flip()
+
+
+def draw_selection_dialog():
+    while True:
+        pygame.draw.rect(screen, '#404147', (cell_size + board.indent_h, cell_size * 3 + board.indent_v,
+                                             cell_size * 6, cell_size * 2))
+        text = pygame.font.Font(None, 50).render('Выберите фигуру', True, 'white')
+        screen.blit(text, (cell_size + board.indent_h + cell_size * 3 - text.get_width() // 2,
+                           cell_size * 3.25 + board.indent_v - text.get_height() // 2))
+        x, y = cell_size + board.indent_h + 25, cell_size * 3 + board.indent_v + 60
+        for i in range(4):
+            piece = ['rook', 'knight', 'bishop', 'queen'][i]
+            screen.blit(pygame.transform.scale(load_image(f'W{piece}.png' if board.color == BLACK else f'b{piece}.png'),
+                                               (cell_size, cell_size)), (x + 150 * i, y))
+            pygame.draw.rect(screen, 'white',
+                             (x + 150 * i, y, cell_size, cell_size), 5)
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if x <= event.pos[0] <= x + 100 and y <= event.pos[1] <= y + cell_size:
+                    return Rook
+                elif x + 150 <= event.pos[0] <= x + 250 and y <= event.pos[1] <= y + cell_size:
+                    return Knight
+                elif x + 300 <= event.pos[0] <= x + 400 and y <= event.pos[1] <= y + cell_size:
+                    return Bishop
+                elif x + 450 <= event.pos[0] <= x + 550 and y <= event.pos[1] <= y + cell_size:
+                    return Queen
 
 
 class Board(pygame.sprite.Sprite):
@@ -229,6 +270,7 @@ class Board(pygame.sprite.Sprite):
                     if piece.char() == 'K':
                         piece.turn += 1
                     check(self)
+                    pawn_conversion(board)
                     return True
             draw_possible_moves(board, row, col)
 
