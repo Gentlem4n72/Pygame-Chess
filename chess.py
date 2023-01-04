@@ -306,12 +306,13 @@ class Pawn(pygame.sprite.Sprite):
             direction = -1
             start_row = 6
 
-        if row + direction == row1:
+        if row + direction == row1 and board.field[row1][col] is None:
             return True
 
         if (row == start_row
                 and row + 2 * direction == row1
-                and board.field[row + direction][col] is None):
+                and board.field[row + direction][col] is None
+                and board.field[row1][col] is None):
             return True
 
         return False
