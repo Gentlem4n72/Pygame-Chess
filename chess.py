@@ -26,7 +26,6 @@ def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
         col += 1
     for i in range(col, col1, step):
         if field[row][i]:
-            print(field[row][i])
             return False
     return True
 
@@ -48,12 +47,21 @@ def check(field):
         for p in r:
             if isinstance(p, King):
                 color = opponent(p.color)
-                if any(map(lambda x: x.can_attack(field, *get_cell((x.rect.y, x.rect.x)),
-                                                  *get_cell(((p.rect.y, p.rect.x) if (isinstance(x, King) or
-                                                                                      isinstance(x, Rook))
-                                                  else (p.rect.x, p.rect.y)))),
-                           filter(lambda x: x.color == color,
-                                  [x for x in all_pieces.sprites()]))):
+                col1, row1 = get_cell((p.rect.x, p.rect.y))
+
+                if any(
+                        map(
+                            lambda x: x.can_attack(field,
+                                                   get_cell((x.rect.x, x.rect.y))[1],
+                                                   get_cell((x.rect.x, x.rect.y))[0],
+                                                   row1,
+                                                   col1),
+                            filter(
+                                lambda x: x.color == color,
+                                [x for x in all_pieces.sprites()]
+                            )
+                        )
+                ):
                     if color == BLACK:
                         result[0] = True
                     else:
@@ -323,12 +331,12 @@ class Rook(pygame.sprite.Sprite):
 
         step = 1 if (row1 >= row) else -1
         for r in range(row + step, row1, step):
-            if not (board.get_piece(r, col) is None):
+            if not (board.get_piece(r, col1) is None):
                 return False
 
         step = 1 if (col1 >= col) else -1
         for c in range(col + step, col1, step):
-            if not (board.get_piece(row, c) is None):
+            if not (board.get_piece(row1, c) is None):
                 return False
 
         return True
@@ -438,12 +446,11 @@ class King(pygame.sprite.Sprite):
         delta_row = abs(row - row1)
         delta_col = abs(col - col1)
         if delta_row <= 1 and delta_col <= 1:
-            if any(map(lambda x: x.can_attack(board, *get_cell((x.rect.y, x.rect.x)),
-                                              *((col1, row1) if (isinstance(x, King) or
-                                                                 isinstance(x, Rook))
-                                              else (row1, col1))),
-                       filter(lambda x: x.color == opponent(self.color),
-                              [x for x in all_pieces.sprites()]))):
+            if any(map(lambda x: x.can_attack(board, get_cell((x.rect.x, x.rect.y))[1],
+                                              get_cell((x.rect.x, x.rect.y))[0],
+                                              row1,
+                                              col1),
+                       filter(lambda x: x.color == opponent(self.color), all_pieces.sprites()))):
                 return False
             return True
         return False
