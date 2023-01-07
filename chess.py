@@ -86,27 +86,45 @@ def get_pixels(coords):
     return nx, ny
 
 
-def draw_menu(screen, board):
+def draw_game_menu(screen, board):
     pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - 75, HEIGHT - BOARD_SIZE - 75,
                                        BOARD_SIZE + 50, BOARD_SIZE + 50))
-    pygame.draw.rect(screen, 'black', (25, 25, 775, 600), 5)
-    pygame.draw.rect(screen, 'black', (25, 25, 775, 115), 5)
+
+    pygame.draw.rect(screen, 'black', (25, 100, 775, 600), 5)
+    pygame.draw.rect(screen, 'black', (25, 100, 775, 115), 5)
+
+    pygame.draw.rect(screen, 'black', (25, 25, 300, 60), 5)
+    return_text = pygame.font.Font(None, 40).render('<- На главное меню', True, 'white')
+    screen.blit(return_text, (175 - return_text.get_width() // 2, 55 - return_text.get_height() // 2))
+
     pygame.draw.rect(screen, 'black', (150, 750, 525, 125), 5)
     pygame.draw.rect(screen, '#660000', (155, 755, 515, 115))
     surr_text = pygame.font.Font(None, 50).render('Сдаться', True, 'white')
     screen.blit(surr_text, (413 - surr_text.get_width() // 2, 813 - surr_text.get_height() // 2))
+
     turn = pygame.font.Font(None, 50).render('Ход ' + ('белых' if board.color == WHITE else 'чёрных'),
                                              True, 'white')
-    screen.blit(turn, (150 - turn.get_width() // 2, 80 - turn.get_height() // 2))
+    screen.blit(turn, (150 - turn.get_width() // 2, 155 - turn.get_height() // 2))
+
     checks = check(board)
     if checks[0]:
         check_text = pygame.font.Font(None, 50).render('Шах белым', True, 'white')
         screen.blit(check_text, (660 - check_text.get_width() // 2,
-                                 55 - check_text.get_height() // 2))
+                                 130 - check_text.get_height() // 2))
     if checks[1]:
         check_text = pygame.font.Font(None, 50).render('Шах чёрным', True, 'white')
         screen.blit(check_text, (660 - check_text.get_width() // 2,
-                                 105 - check_text.get_height() // 2))
+                                 180 - check_text.get_height() // 2))
+
+
+def draw_main_menu(main_menu):
+    text = pygame.font.Font(None, 100).render('Шах и Мат', True, 'white')
+    main_menu.blit(text, (400 - text.get_width() // 2, 150 - text.get_height() // 2))
+    for _ in range(3):
+        text = ['Играть', 'Анализ партии', 'Испытания'][_]
+        pygame.draw.rect(main_menu, 'black', (250, 225 + 95 * _, 300, 75), 5)
+        btn_text = pygame.font.Font(None, 45).render(text, True, 'white')
+        main_menu.blit(btn_text, (400 - btn_text.get_width() // 2, 260 + 95 * _ - btn_text.get_height() // 2))
 
 
 def draw_possible_moves(board, row, col):
@@ -519,19 +537,11 @@ class Bishop(pygame.sprite.Sprite):
         return self.can_move(board, row, col, row1, col1)
 
 
-if __name__ == "__main__":
-    running = True
-    pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption('Шах и Мат')
-    all_sprites = pygame.sprite.Group()
-    all_pieces = pygame.sprite.Group()
-    cell_size = BOARD_SIZE // 8
-    board = Board()
-    while running:
+def game():
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 if (board.indent_h <= x <= board.indent_h + BOARD_SIZE and
@@ -542,9 +552,36 @@ if __name__ == "__main__":
                         board.move_piece(x, y)
                 elif 150 <= x <= 675 and 750 <= y <= 825:
                     board.surrender()
+                elif 25 <= x <= 325 and 25 <= y <= 85:
+                    return
         screen.fill('#404147')
-        draw_menu(screen, board)
+        draw_game_menu(screen, board)
         all_sprites.update()
         all_sprites.draw(screen)
+        pygame.display.flip()
+
+
+if __name__ == "__main__":
+    running = True
+    pygame.init()
+    main_menu = pygame.display.set_mode((800, 600))
+    pygame.display.set_caption('Главное меню')
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN and (250 <= event.pos[0] <= 550 and
+                                                           225 <= event.pos[1] <= 300):
+                pygame.display.quit()
+                screen = pygame.display.set_mode((WIDTH, HEIGHT))
+                all_sprites = pygame.sprite.Group()
+                all_pieces = pygame.sprite.Group()
+                cell_size = BOARD_SIZE // 8
+                board = Board()
+                game()
+                pygame.display.quit()
+                main_menu = pygame.display.set_mode((800, 600))
+        main_menu.fill('#404147')
+        draw_main_menu(main_menu)
         pygame.display.flip()
     pygame.quit()
