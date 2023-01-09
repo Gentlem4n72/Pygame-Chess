@@ -400,7 +400,7 @@ class Board(pygame.sprite.Sprite):
                     if piece.char() == 'K':
                         piece.turn += 1
                     check(self)
-                    pawn_conversion(self)
+                    pawn_conversion(board)
                     checkmate(self.color, self)
                     return True
             draw_possible_moves(board, row, col)
@@ -550,9 +550,9 @@ class King(pygame.sprite.Sprite):
     def can_move(self, board, row, col, row1, col1):
         delta_row = abs(row - row1)
         delta_col = abs(col - col1)
-        if delta_row <= 1 and delta_col <= 1 and\
+        if delta_row <= 1 and delta_col <= 1 and \
                 (not board.get_piece(row1, col1)
-                 or board.get_piece(row1, col1).color != self.color) and correct_coords(row1, col1) :
+                 or board.get_piece(row1, col1).color != self.color) and correct_coords(row1, col1):
             if any(map(lambda x: x.can_attack(board, get_cell((x.rect.x, x.rect.y))[1],
                                               get_cell((x.rect.x, x.rect.y))[0],
                                               row1,
