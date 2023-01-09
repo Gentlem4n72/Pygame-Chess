@@ -69,6 +69,18 @@ def check(field):
     return result
 
 
+def win_check(board):
+    kings = []
+    for row in board.field:
+        for piece in row:
+            if isinstance(piece, King):
+                kings.append(piece)
+    if len(kings) == 1:
+        return kings[0].color
+    else:
+        return False
+
+
 def opponent(color):
     if color == WHITE:
         return BLACK
@@ -123,6 +135,47 @@ def draw_game_menu(screen, board):
         check_text = pygame.font.Font(None, 50).render('Шах чёрным', True, 'white')
         screen.blit(check_text, (660 - check_text.get_width() // 2,
                                  180 - check_text.get_height() // 2))
+
+
+def draw_win_screen(winner):
+    v = 350
+    fps = 60
+    clock = pygame.time.Clock()
+    y = -500
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if y < 150:
+                    y = 150
+                else:
+                    mx, my = event.pos
+                    if 375 <= mx <= 675 and 550 <= my <= 625:
+                        return 1
+                    elif 725 <= mx <= 1025 and 550 <= my <= 625:
+                        return 2
+                    elif 1075 <= mx <= 1375 and 550 <= my <= 625:
+                        return 3
+        if y >= 150:
+            y = 150
+        else:
+            y += v / fps
+        clock.tick(fps)
+        screen.fill('#404147')
+        draw_game_menu(screen, board)
+        all_sprites.update()
+        all_sprites.draw(screen)
+        pygame.draw.rect(screen, '#404147', (300, y, 1150, 600))
+        pygame.draw.rect(screen, 'black', (300, y, 1150, 600), 5)
+        for _ in range(3):
+            text = ['На главное меню', 'Реванш', 'Анализ партии'][_]
+            pygame.draw.rect(screen, 'black', (375 + 350 * _, y + 400, 300, 75), 5)
+            text = pygame.font.Font(None, 45).render(text, True, 'white')
+            screen.blit(text, (525 + 350 * _ - text.get_width() // 2, y + 435 - text.get_height() // 2))
+        text = pygame.font.Font(None, 70).render('Победа ' + ('белых' if winner == WHITE else 'чёрных'), True, 'white')
+        screen.blit(text, (875 - text.get_width() // 2, y + 150 - text.get_height() // 2))
+        pygame.display.flip()
 
 
 def draw_main_menu(main_menu):
@@ -545,6 +598,7 @@ class Bishop(pygame.sprite.Sprite):
 
 
 def game():
+    global board
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -565,6 +619,13 @@ def game():
         draw_game_menu(screen, board)
         all_sprites.update()
         all_sprites.draw(screen)
+        winner = win_check(board)
+        if winner:
+            choice = draw_win_screen(winner)
+            if choice == 1:
+                return
+            elif choice == 2:
+                board = Board()
         pygame.display.flip()
 
 
@@ -588,6 +649,7 @@ if __name__ == "__main__":
                 game()
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800, 600))
+                pygame.display.set_caption('Главное меню')
         main_menu.fill('#404147')
         draw_main_menu(main_menu)
         pygame.display.flip()
