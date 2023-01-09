@@ -69,6 +69,56 @@ def check(field):
     return result
 
 
+def checkmate(color, board):
+    king_x = 0
+    king_y = 0
+    tking = None
+    check_figures = []
+    figures = [*filter(lambda x: x.color == opponent(color), all_pieces.sprites())]
+    opponent_figures = [*filter(lambda x: x.color == color, all_pieces.sprites())]
+
+    for k in board.field:
+        for king in k:
+            if isinstance(king, King) and king.color == color:
+                tking = king
+                king_y, king_x = get_cell((king.rect.x, king.rect.y))
+
+    for figure in figures:
+        if figure.can_attack(board,
+                             get_cell((figure.rect.x, figure.rect.y))[1],
+                             get_cell((figure.rect.x, figure.rect.y))[0],
+                             king_x,
+                             king_y):
+            check_figures.append(figure)
+
+    king_moves = [tking.can_move(board, king_x, king_y, king_x + 1, king_y + 1),
+                  tking.can_move(board, king_x, king_y, king_x, king_y + 1),
+                  tking.can_move(board, king_x, king_y, king_x + 1, king_y),
+                  tking.can_move(board, king_x, king_y, king_x - 1, king_y + 1),
+                  tking.can_move(board, king_x, king_y, king_x, king_y - 1),
+                  tking.can_move(board, king_x, king_y, king_x - 1, king_y - 1),
+                  tking.can_move(board, king_x, king_y, king_x + 1, king_y - 1),
+                  tking.can_move(board, king_x, king_y, king_x - 1, king_y)]
+
+    if len(check_figures) == 1 and not any(king_moves):
+        for figure in opponent_figures:
+            if any(map(lambda x:
+                       figure.can_attack(board,
+                                         get_cell((figure.rect.x, figure.rect.y))[1],
+                                         get_cell((figure.rect.x, figure.rect.y))[0],
+                                         get_cell((x.rect.x, x.rect.y))[1],
+                                         get_cell((x.rect.x, x.rect.y))[0]
+                                         ),
+                       check_figures)):
+                print('so close')
+                break
+
+    if not any(king_moves) and check_figures:
+        for figure in opponent_figures:
+            pass
+    pass
+
+
 def win_check(board):
     kings = []
     for row in board.field:
@@ -349,7 +399,8 @@ class Board(pygame.sprite.Sprite):
                     if piece.char() == 'K':
                         piece.turn += 1
                     check(self)
-                    pawn_conversion(board)
+                    pawn_conversion(self)
+                    checkmate(self.color, self)
                     return True
             draw_possible_moves(board, row, col)
 
@@ -498,7 +549,9 @@ class King(pygame.sprite.Sprite):
     def can_move(self, board, row, col, row1, col1):
         delta_row = abs(row - row1)
         delta_col = abs(col - col1)
-        if delta_row <= 1 and delta_col <= 1:
+        if delta_row <= 1 and delta_col <= 1 and\
+                (not board.get_piece(row1, col1)
+                 or board.get_piece(row1, col1).color != self.color) and correct_coords(row1, col1) :
             if any(map(lambda x: x.can_attack(board, get_cell((x.rect.x, x.rect.y))[1],
                                               get_cell((x.rect.x, x.rect.y))[0],
                                               row1,
