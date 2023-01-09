@@ -557,7 +557,8 @@ class King(pygame.sprite.Sprite):
                                               get_cell((x.rect.x, x.rect.y))[0],
                                               row1,
                                               col1),
-                       filter(lambda x: x.color == opponent(self.color), all_pieces.sprites()))):
+                       filter(lambda x: x.color == opponent(self.color), all_pieces.sprites()))
+                   ):
                 return False
             return True
         return False
