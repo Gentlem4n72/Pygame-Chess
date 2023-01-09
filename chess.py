@@ -156,7 +156,7 @@ def get_pixels(coords):
     return nx, ny
 
 
-def draw_game_menu(screen, board):
+def draw_game_menu(screen, board, analysis=False):
     pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - 75, HEIGHT - BOARD_SIZE - 75,
                                        BOARD_SIZE + 50, BOARD_SIZE + 50))
 
@@ -167,10 +167,11 @@ def draw_game_menu(screen, board):
     return_text = pygame.font.Font(None, 40).render('<- На главное меню', True, 'white')
     screen.blit(return_text, (175 - return_text.get_width() // 2, 55 - return_text.get_height() // 2))
 
-    pygame.draw.rect(screen, 'black', (150, 750, 525, 125), 5)
-    pygame.draw.rect(screen, '#660000', (155, 755, 515, 115))
-    surr_text = pygame.font.Font(None, 50).render('Сдаться', True, 'white')
-    screen.blit(surr_text, (413 - surr_text.get_width() // 2, 813 - surr_text.get_height() // 2))
+    if not analysis:
+        pygame.draw.rect(screen, 'black', (150, 750, 525, 125), 5)
+        pygame.draw.rect(screen, '#660000', (155, 755, 515, 115))
+        surr_text = pygame.font.Font(None, 50).render('Сдаться', True, 'white')
+        screen.blit(surr_text, (413 - surr_text.get_width() // 2, 813 - surr_text.get_height() // 2))
 
     turn = pygame.font.Font(None, 50).render('Ход ' + ('белых' if board.color == WHITE else 'чёрных'),
                                              True, 'white')
@@ -682,6 +683,75 @@ def game():
         pygame.display.flip()
 
 
+def analysis(board):
+    arrow = []
+    arrows = []
+    borders = []
+    circles = []
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+                if (board.indent_h <= x <= board.indent_h + BOARD_SIZE and
+                        board.indent_v <= y <= board.indent_v + BOARD_SIZE):
+                    x, y = get_cell((x, y))
+
+                    if event.button == 3:  # пкм
+                        if not arrow:
+                            arrow = [x, y]
+                            borders += [get_pixels((x, y))]
+                        elif len(arrow) == 2:
+                            arrow = list(map(lambda z: z + cell_size // 2, get_pixels((arrow[0], arrow[1])))) + \
+                                    list(map(lambda z: z + cell_size // 2, get_pixels((x, y))))
+                            arrows.append(arrow)
+                            arrow = []
+                            borders += [get_pixels((x, y))]
+
+                    if event.button == 1:  # лкм
+                        circles = []
+                        arrows = []
+                        arrow = []
+                        borders = []
+                        if (not (board.field[y][x] is None) and
+                                board.color == board.field[y][x].get_color()):
+                            board.move_piece(x, y)
+
+                    if event.button == 2:  # колесико мышки
+                        if (x, y) not in circles:
+                            circles.append((x, y))
+                        else:
+                            circles.remove((x, y))
+                elif 25 <= x <= 325 and 25 <= y <= 85:
+                    return
+
+        for elem in circles:
+            pygame.draw.circle(screen, 'green',
+                               tuple(map(lambda z: z + cell_size // 2, get_pixels((elem[0], elem[1])))),
+                               cell_size // 2, 5)
+        for elem in borders:
+            pygame.draw.rect(screen, 'orange', (elem[0], elem[1], cell_size, cell_size), 5)
+        for elem in arrows:
+            if len(elem) == 4:
+                pygame.draw.line(screen, 'orange', (elem[0], elem[1]), (elem[2], elem[3]), 5)
+
+        pygame.display.flip()
+
+        screen.fill('#404147')
+        draw_game_menu(screen, board, analysis=True)
+        all_sprites.update()
+        all_sprites.draw(screen)
+        winner = win_check(board)
+        if winner:
+            choice = draw_win_screen(winner)
+            if choice == 1:
+                return
+            elif choice == 2:
+                board = Board()
+        pygame.display.flip()
+
+
 if __name__ == "__main__":
     running = True
     pygame.init()
@@ -695,11 +765,25 @@ if __name__ == "__main__":
                                                            225 <= event.pos[1] <= 300):
                 pygame.display.quit()
                 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+                pygame.display.set_caption('Играть')
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
                 cell_size = BOARD_SIZE // 8
                 board = Board()
                 game()
+                pygame.display.quit()
+                main_menu = pygame.display.set_mode((800, 600))
+                pygame.display.set_caption('Главное меню')
+            elif event.type == pygame.MOUSEBUTTONDOWN and (250 <= event.pos[0] <= 550 and
+                                                           320 <= event.pos[1] <= 395):
+                pygame.display.quit()
+                screen = pygame.display.set_mode((WIDTH, HEIGHT))
+                pygame.display.set_caption('Анализ партии')
+                all_sprites = pygame.sprite.Group()
+                all_pieces = pygame.sprite.Group()
+                cell_size = BOARD_SIZE // 8
+                board = Board()
+                analysis(board)
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800, 600))
                 pygame.display.set_caption('Главное меню')
