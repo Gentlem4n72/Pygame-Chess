@@ -727,6 +727,10 @@ def analysis(board):
                 elif 25 <= x <= 325 and 25 <= y <= 85:
                     return
 
+        screen.fill('#404147')
+        draw_game_menu(screen, board, analysis=True)
+        all_sprites.update()
+        all_sprites.draw(screen)
         for elem in circles:
             pygame.draw.circle(screen, 'green',
                                tuple(map(lambda z: z + cell_size // 2, get_pixels((elem[0], elem[1])))),
@@ -736,13 +740,6 @@ def analysis(board):
         for elem in arrows:
             if len(elem) == 4:
                 pygame.draw.line(screen, 'orange', (elem[0], elem[1]), (elem[2], elem[3]), 5)
-
-        pygame.display.flip()
-
-        screen.fill('#404147')
-        draw_game_menu(screen, board, analysis=True)
-        all_sprites.update()
-        all_sprites.draw(screen)
         winner = win_check(board)
         if winner:
             choice = draw_win_screen(winner)
