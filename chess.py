@@ -76,6 +76,8 @@ def checkmate(color, board):
     check_figures = []
     figures = [*filter(lambda x: x.color == opponent(color), all_pieces.sprites())]
     opponent_figures = [*filter(lambda x: x.color == color, all_pieces.sprites())]
+    old_figure = None
+    old_cords = ()
 
     for k in board.field:
         for king in k:
@@ -110,13 +112,30 @@ def checkmate(color, board):
                                          get_cell((x.rect.x, x.rect.y))[0]
                                          ),
                        check_figures)):
-                print('so close')
-                break
+                return
 
-    if not any(king_moves) and check_figures:
+    if not any(king_moves) and len(check_figures) == 1:
         for figure in opponent_figures:
-            pass
-    pass
+            for x in range(7):
+                for y in range(7):
+                    if figure.can_attack(board,
+                                         get_cell((figure.rect.x, figure.rect.y))[1],
+                                         get_cell((figure.rect.x, figure.rect.y))[0],
+                                         x,
+                                         y):
+                        old_figure = board.field[x][y]
+                        old_cords = get_cell((figure.rect.x, figure.rect.y))
+                        board.field[x][y] = figure
+                        if any(map(lambda z: z.can_attack(board,
+                                                          get_cell((z.rect.x, z.rect.y))[1],
+                                                          get_cell((z.rect.x, z.rect.y))[0],
+                                                          king_x,
+                                                          king_y), figures)) is False:
+                            return
+                            board.field[x][y] = old_figure
+                            board.field[old_cords[1]][old_cords[0]] = figure
+    if not any(king_moves) and check_figures:
+        return opponent(color)
 
 
 def win_check(board):
@@ -674,7 +693,7 @@ def game():
         draw_game_menu(screen, board)
         all_sprites.update()
         all_sprites.draw(screen)
-        winner = win_check(board)
+        winner = checkmate(board.color, board)
         if winner:
             choice = draw_win_screen(winner)
             if choice == 1:
