@@ -74,6 +74,7 @@ def checkmate(color, board):
     king_y = 0
     tking = None
     check_figures = []
+    king_moves = []
     figures = [*filter(lambda x: x.color == opponent(color), all_pieces.sprites())]
     opponent_figures = [*filter(lambda x: x.color == color, all_pieces.sprites())]
     old_figure = None
@@ -92,15 +93,15 @@ def checkmate(color, board):
                              king_x,
                              king_y):
             check_figures.append(figure)
-    print(board.field)
-    king_moves = [tking.can_move(board, king_x, king_y, king_x + 1, king_y + 1),
-                  tking.can_move(board, king_x, king_y, king_x, king_y + 1),
-                  tking.can_move(board, king_x, king_y, king_x + 1, king_y),
-                  tking.can_move(board, king_x, king_y, king_x - 1, king_y + 1),
-                  tking.can_move(board, king_x, king_y, king_x, king_y - 1),
-                  tking.can_move(board, king_x, king_y, king_x - 1, king_y - 1),
-                  tking.can_move(board, king_x, king_y, king_x + 1, king_y - 1),
-                  tking.can_move(board, king_x, king_y, king_x - 1, king_y)]
+    if tking:
+        king_moves = [tking.can_move(board, king_x, king_y, king_x + 1, king_y + 1),
+                      tking.can_move(board, king_x, king_y, king_x, king_y + 1),
+                      tking.can_move(board, king_x, king_y, king_x + 1, king_y),
+                      tking.can_move(board, king_x, king_y, king_x - 1, king_y + 1),
+                      tking.can_move(board, king_x, king_y, king_x, king_y - 1),
+                      tking.can_move(board, king_x, king_y, king_x - 1, king_y - 1),
+                      tking.can_move(board, king_x, king_y, king_x + 1, king_y - 1),
+                      tking.can_move(board, king_x, king_y, king_x - 1, king_y)]
 
     if len(check_figures) == 1 and not any(king_moves):
         for figure in opponent_figures:
@@ -114,15 +115,20 @@ def checkmate(color, board):
                        check_figures)):
                 return
 
-    if not any(king_moves) and len(check_figures) == 1:
+    if not any(king_moves) and check_figures:
         for figure in opponent_figures:
-            for x in range(7):
-                for y in range(7):
+            for y in range(8):
+                for x in range(8):
                     if figure.can_attack(board,
                                          get_cell((figure.rect.x, figure.rect.y))[1],
                                          get_cell((figure.rect.x, figure.rect.y))[0],
                                          x,
-                                         y):
+                                         y)\
+                            or figure.can_move(board,
+                                               get_cell((figure.rect.x, figure.rect.y))[1],
+                                               get_cell((figure.rect.x, figure.rect.y))[0],
+                                               x,
+                                               y):
                         old_figure = board.field[x][y]
                         old_cords = get_cell((figure.rect.x, figure.rect.y))
                         board.field[x][y] = figure
@@ -131,11 +137,27 @@ def checkmate(color, board):
                                                           get_cell((z.rect.x, z.rect.y))[0],
                                                           king_x,
                                                           king_y), figures)) is False:
+                            print(figure)
                             board.field[x][y] = old_figure
                             board.field[old_cords[1]][old_cords[0]] = figure
                             return
+                        board.field[x][y] = old_figure
+                        board.field[old_cords[1]][old_cords[0]] = figure
+        return opponent(color)
     if not any(king_moves) and check_figures:
         return opponent(color)
+
+
+def win_check(board):
+    kings = []
+    for row in board.field:
+        for piece in row:
+            if isinstance(piece, King):
+                kings.append(piece)
+    if len(kings) == 1:
+        return kings[0].color
+    else:
+        return False
 
 
 def win_check(board):
