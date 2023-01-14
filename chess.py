@@ -544,8 +544,11 @@ class Pawn(pygame.sprite.Sprite):
         if row1 == row and col1 == col:
             return False
         direction = 1 if (self.color == BLACK) else -1
-        return (row + direction == row1
-                and (col + 1 == col1 or col - 1 == col1))
+                if board.field[row1][col1]:
+            if board.field[row1][col1] != self.color:
+                return (row + direction == row1
+                        and (col + 1 == col1 or col - 1 == col1))
+        return False
 
 
 class Knight(pygame.sprite.Sprite):
