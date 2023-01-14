@@ -176,6 +176,8 @@ def get_pixels(coords):
 
 
 def draw_game_menu(screen, board, analysis=False):
+    global check_alarm
+
     pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - 75, HEIGHT - BOARD_SIZE - 75,
                                        BOARD_SIZE + 50, BOARD_SIZE + 50))
     for i in range(8):
@@ -221,6 +223,12 @@ def draw_game_menu(screen, board, analysis=False):
         check_text = pygame.font.Font(None, 50).render('Шах чёрным', True, 'white')
         screen.blit(check_text, (660 - check_text.get_width() // 2,
                                  180 - check_text.get_height() // 2))
+
+    if not check_alarm and (checks[0] or checks[1]):
+        check_sound.play()
+        check_alarm = True
+    if check_alarm and not(checks[0] or checks[1]):
+        check_alarm = False
 
 
 def draw_win_screen(winner):
@@ -309,12 +317,16 @@ def draw_selection_dialog():
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if x <= event.pos[0] <= x + 100 and y <= event.pos[1] <= y + cell_size:
+                    click.play()
                     return Rook
                 elif x + 150 <= event.pos[0] <= x + 250 and y <= event.pos[1] <= y + cell_size:
+                    click.play()
                     return Knight
                 elif x + 300 <= event.pos[0] <= x + 400 and y <= event.pos[1] <= y + cell_size:
+                    click.play()
                     return Bishop
                 elif x + 450 <= event.pos[0] <= x + 550 and y <= event.pos[1] <= y + cell_size:
+                    click.play()
                     return Queen
 
 
@@ -410,6 +422,7 @@ class Board(pygame.sprite.Sprite):
                                     self.field[row1][col1 - 3] = rook
                                     piece.rect.x, piece.rect.y = get_pixels((col + 2, row))
                                     rook.rect.x, piece.rect.y = get_pixels((col1 - 3, row1))
+                                figure.play()
                                 self.color = opponent(self.color)
                                 piece.turn += 1
                                 check(self)
@@ -418,6 +431,7 @@ class Board(pygame.sprite.Sprite):
                                 return False
                         else:
                             return False
+                    figure.play()
                     self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
                     self.field[row][col] = None  # Снять фигуру.
                     self.field[row1][col1] = piece  # Поставить на новое место.
@@ -679,7 +693,7 @@ class Bishop(pygame.sprite.Sprite):
 
 
 def game():
-    global board
+    global board, check_alarm
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -691,10 +705,13 @@ def game():
                     x, y = get_cell((x, y))
                     if (not (board.field[y][x] is None) and
                             board.color == board.field[y][x].get_color()):
+                        figure.play()
                         board.move_piece(x, y)
                 elif 150 <= x <= 675 and 750 <= y <= 825:
+                    click.play()
                     board.surrender()
                 elif 25 <= x <= 325 and 25 <= y <= 85:
+                    click.play()
                     return
         screen.fill('#404147')
         draw_game_menu(screen, board)
@@ -702,11 +719,13 @@ def game():
         all_sprites.draw(screen)
         winner = checkmate(board.color, board)
         if winner:
+            gameover.play()
             choice = draw_win_screen(winner)
             if choice == 1:
                 return
             elif choice == 2:
                 board = Board()
+                check_alarm = False
         pygame.display.flip()
 
 
@@ -743,6 +762,7 @@ def analysis(board):
                         borders = []
                         if (not (board.field[y][x] is None) and
                                 board.color == board.field[y][x].get_color()):
+                            figure.play()
                             board.move_piece(x, y)
 
                     if event.button == 2:  # колесико мышки
@@ -751,6 +771,7 @@ def analysis(board):
                         else:
                             circles.remove((x, y))
                 elif 25 <= x <= 325 and 25 <= y <= 85:
+                    click.play()
                     return
 
         screen.fill('#404147')
@@ -778,15 +799,27 @@ def analysis(board):
 
 if __name__ == "__main__":
     running = True
+    pygame.mixer.pre_init(44100, -16, 1, 512)
     pygame.init()
     main_menu = pygame.display.set_mode((800, 600))
     pygame.display.set_caption('Главное меню')
+
+    intro = pygame.mixer.Sound('sounds/intro.wav')
+    click = pygame.mixer.Sound('sounds/click.wav')
+    check_sound = pygame.mixer.Sound('sounds/check.wav')
+    figure = pygame.mixer.Sound('sounds/figure.wav')
+    gameover = pygame.mixer.Sound('sounds/gameover.wav')
+    intro.play()
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN and (250 <= event.pos[0] <= 550 and
                                                            225 <= event.pos[1] <= 300):
+                click.play()
+                check_alarm = False
+
                 pygame.display.quit()
                 screen = pygame.display.set_mode((WIDTH, HEIGHT))
                 pygame.display.set_caption('Играть')
@@ -800,6 +833,9 @@ if __name__ == "__main__":
                 pygame.display.set_caption('Главное меню')
             elif event.type == pygame.MOUSEBUTTONDOWN and (250 <= event.pos[0] <= 550 and
                                                            320 <= event.pos[1] <= 395):
+                click.play()
+                check_alarm = False
+
                 pygame.display.quit()
                 screen = pygame.display.set_mode((WIDTH, HEIGHT))
                 pygame.display.set_caption('Анализ партии')
