@@ -33,8 +33,8 @@ def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
 def pawn_conversion(board):
     for piece in filter(lambda x: isinstance(x, Pawn), all_pieces):
         x, y = get_cell((piece.rect.x, piece.rect.y))
-        if (piece.color == WHITE and y == 7 or
-                (piece.color == BLACK and y == 0)):
+        if (piece.color == WHITE and y == 0 or
+                (piece.color == BLACK and y == 7)):
             choice = draw_selection_dialog()
             board.field[y][x] = choice(piece.color, piece.rect.x, piece.rect.y)
             all_pieces.remove(piece)
@@ -178,9 +178,25 @@ def get_pixels(coords):
 def draw_game_menu(screen, board, analysis=False):
     pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - 75, HEIGHT - BOARD_SIZE - 75,
                                        BOARD_SIZE + 50, BOARD_SIZE + 50))
+    for i in range(8):
+        letter = 'ABCDEFGH'[i]
+        letter = pygame.font.Font(None, 25).render(letter, True, 'white')
+        screen.blit(letter, (WIDTH - BOARD_SIZE + 100 * i - letter.get_width() // 2,
+                             HEIGHT - 37 - letter.get_height() // 2))
+    for i in range(8):
+        number = pygame.font.Font(None, 25).render(str(8 - i), True, 'white')
+        screen.blit(number, (WIDTH - 40 - number.get_width() // 2,
+                             100 + 100 * i - number.get_height() // 2))
 
-    pygame.draw.rect(screen, 'black', (25, 100, 775, 600), 5)
+    pygame.draw.rect(screen, 'black', (25, 100, 775, 615), 5)
     pygame.draw.rect(screen, 'black', (25, 100, 775, 115), 5)
+    color = board.color
+    for i in range(len(board.protocol) if len(board.protocol) < 5 else 5):
+        color = opponent(color)
+        text = ' -> '.join(board.protocol[-5:][i])
+        text = pygame.font.Font(None, 50).render(text, True, 'white')
+        screen.blit(text, (425 - text.get_width() // 2, 215 + 100 * i + 52 - text.get_height() // 2))
+        pygame.draw.rect(screen, 'black', (25, 210 + 100 * i, 775, 105), 5)
 
     pygame.draw.rect(screen, 'black', (25, 25, 300, 60), 5)
     return_text = pygame.font.Font(None, 40).render('<- На главное меню', True, 'white')
@@ -306,34 +322,35 @@ class Board(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(all_sprites)
         self.color = WHITE
+        self.protocol = []
         self.field = []
         self.indent_h = WIDTH - BOARD_SIZE - 50
         self.indent_v = HEIGHT - BOARD_SIZE - 50
         for row in range(8):
             self.field.append([None] * 8)
         self.field[0] = [
-            Rook(WHITE, self.indent_h, self.indent_v),
-            Knight(WHITE, self.indent_h + cell_size, self.indent_v),
-            Bishop(WHITE, self.indent_h + cell_size * 2, self.indent_v),
-            King(WHITE, self.indent_h + cell_size * 3, self.indent_v),
-            Queen(WHITE, self.indent_h + cell_size * 4, self.indent_v),
-            Bishop(WHITE, self.indent_h + cell_size * 5, self.indent_v),
-            Knight(WHITE, self.indent_h + cell_size * 6, self.indent_v),
-            Rook(WHITE, self.indent_h + cell_size * 7, self.indent_v)
+            Rook(BLACK, self.indent_h, self.indent_v),
+            Knight(BLACK, self.indent_h + cell_size, self.indent_v),
+            Bishop(BLACK, self.indent_h + cell_size * 2, self.indent_v),
+            Queen(BLACK, self.indent_h + cell_size * 3, self.indent_v),
+            King(BLACK, self.indent_h + cell_size * 4, self.indent_v),
+            Bishop(BLACK, self.indent_h + cell_size * 5, self.indent_v),
+            Knight(BLACK, self.indent_h + cell_size * 6, self.indent_v),
+            Rook(BLACK, self.indent_h + cell_size * 7, self.indent_v)
         ]
-        self.field[1] = [Pawn(WHITE, self.indent_h + cell_size * i, self.indent_v + cell_size) for i in range(8)]
+        self.field[1] = [Pawn(BLACK, self.indent_h + cell_size * i, self.indent_v + cell_size) for i in range(8)]
 
-        self.field[6] = [Pawn(BLACK, self.indent_h + cell_size * i, self.indent_v + cell_size * 6) for i in range(8)]
+        self.field[6] = [Pawn(WHITE, self.indent_h + cell_size * i, self.indent_v + cell_size * 6) for i in range(8)]
 
         self.field[7] = [
-            Rook(BLACK, self.indent_h, self.indent_v + cell_size * 7),
-            Knight(BLACK, self.indent_h + cell_size, self.indent_v + cell_size * 7),
-            Bishop(BLACK, self.indent_h + cell_size * 2, self.indent_v + cell_size * 7),
-            King(BLACK, self.indent_h + cell_size * 3, self.indent_v + cell_size * 7),
-            Queen(BLACK, self.indent_h + cell_size * 4, self.indent_v + cell_size * 7),
-            Bishop(BLACK, self.indent_h + cell_size * 5, self.indent_v + cell_size * 7),
-            Knight(BLACK, self.indent_h + cell_size * 6, self.indent_v + cell_size * 7),
-            Rook(BLACK, self.indent_h + cell_size * 7, self.indent_v + cell_size * 7)
+            Rook(WHITE, self.indent_h, self.indent_v + cell_size * 7),
+            Knight(WHITE, self.indent_h + cell_size, self.indent_v + cell_size * 7),
+            Bishop(WHITE, self.indent_h + cell_size * 2, self.indent_v + cell_size * 7),
+            Queen(WHITE, self.indent_h + cell_size * 3, self.indent_v + cell_size * 7),
+            King(WHITE, self.indent_h + cell_size * 4, self.indent_v + cell_size * 7),
+            Bishop(WHITE, self.indent_h + cell_size * 5, self.indent_v + cell_size * 7),
+            Knight(WHITE, self.indent_h + cell_size * 6, self.indent_v + cell_size * 7),
+            Rook(WHITE, self.indent_h + cell_size * 7, self.indent_v + cell_size * 7)
         ]
         self.image = pygame.Surface((800, 800))
         self.rect = pygame.Rect(WIDTH - BOARD_SIZE - 50, HEIGHT - BOARD_SIZE - 50, WIDTH - 25, HEIGHT - 25)
@@ -344,17 +361,6 @@ class Board(pygame.sprite.Sprite):
 
     def current_player_color(self):
         return self.color
-
-    def cell(self, row, col):
-        '''Возвращает строку из двух символов. Если в клетке (row, col)
-        находится фигура, символы цвета и фигуры. Если клетка пуста,
-        то два пробела.'''
-        piece = self.field[row][col]
-        if piece is None:
-            return '  '
-        color = piece.get_color()
-        c = 'w' if color == WHITE else 'b'
-        return c + piece.char()
 
     def get_piece(self, row, col):
         if correct_coords(row, col):
@@ -412,6 +418,7 @@ class Board(pygame.sprite.Sprite):
                                 return False
                         else:
                             return False
+                    self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
                     self.field[row][col] = None  # Снять фигуру.
                     self.field[row1][col1] = piece  # Поставить на новое место.
                     piece.rect.x, piece.rect.y = get_pixels((col1, row1))
@@ -491,7 +498,7 @@ class Pawn(pygame.sprite.Sprite):
         if col != col1:
             return False
 
-        if self.color == WHITE:
+        if self.color == BLACK:
             direction = 1
             start_row = 1
         else:
@@ -512,7 +519,7 @@ class Pawn(pygame.sprite.Sprite):
     def can_attack(self, board, row, col, row1, col1):
         if row1 == row and col1 == col:
             return False
-        direction = 1 if (self.color == WHITE) else -1
+        direction = 1 if (self.color == BLACK) else -1
         return (row + direction == row1
                 and (col + 1 == col1 or col - 1 == col1))
 
