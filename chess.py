@@ -692,6 +692,25 @@ class Bishop(pygame.sprite.Sprite):
         return self.can_move(board, row, col, row1, col1)
 
 
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, frames, x, y):
+        super().__init__(animated_sprite)
+        self.frames = []
+        self.create_frames(frames)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def create_frames(self, frames):
+        self.rect = pygame.Rect(0, -10, 100, 100)
+        for i in range(frames):
+            self.frames.append(load_image(f'knight/{str(i)}.png'))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+
+
 def game():
     global board, check_alarm
     while True:
@@ -811,6 +830,11 @@ if __name__ == "__main__":
     gameover = pygame.mixer.Sound('sounds/gameover.wav')
     intro.play()
 
+    animated_sprite = pygame.sprite.Group()
+    knight = AnimatedSprite(9, 100, 100)
+    fps = 6
+    clock = pygame.time.Clock()
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -849,5 +873,8 @@ if __name__ == "__main__":
                 pygame.display.set_caption('Главное меню')
         main_menu.fill('#404147')
         draw_main_menu(main_menu)
+        animated_sprite.update()
+        animated_sprite.draw(main_menu)
         pygame.display.flip()
+        clock.tick(fps)
     pygame.quit()
