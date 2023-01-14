@@ -160,18 +160,6 @@ def win_check(board):
         return False
 
 
-def win_check(board):
-    kings = []
-    for row in board.field:
-        for piece in row:
-            if isinstance(piece, King):
-                kings.append(piece)
-    if len(kings) == 1:
-        return kings[0].color
-    else:
-        return False
-
-
 def opponent(color):
     if color == WHITE:
         return BLACK
