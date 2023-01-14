@@ -137,7 +137,6 @@ def checkmate(color, board):
                                                           get_cell((z.rect.x, z.rect.y))[0],
                                                           king_x,
                                                           king_y), figures)) is False:
-                            print(figure)
                             board.field[x][y] = old_figure
                             board.field[old_cords[1]][old_cords[0]] = figure
                             return
@@ -146,18 +145,6 @@ def checkmate(color, board):
         return opponent(color)
     if not any(king_moves) and check_figures:
         return opponent(color)
-
-
-def win_check(board):
-    kings = []
-    for row in board.field:
-        for piece in row:
-            if isinstance(piece, King):
-                kings.append(piece)
-    if len(kings) == 1:
-        return kings[0].color
-    else:
-        return False
 
 
 def win_check(board):
