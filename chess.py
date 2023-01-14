@@ -92,7 +92,7 @@ def checkmate(color, board):
                              king_x,
                              king_y):
             check_figures.append(figure)
-
+    print(board.field)
     king_moves = [tking.can_move(board, king_x, king_y, king_x + 1, king_y + 1),
                   tking.can_move(board, king_x, king_y, king_x, king_y + 1),
                   tking.can_move(board, king_x, king_y, king_x + 1, king_y),
@@ -131,9 +131,9 @@ def checkmate(color, board):
                                                           get_cell((z.rect.x, z.rect.y))[0],
                                                           king_x,
                                                           king_y), figures)) is False:
-                            return
                             board.field[x][y] = old_figure
                             board.field[old_cords[1]][old_cords[0]] = figure
+                            return
     if not any(king_moves) and check_figures:
         return opponent(color)
 
