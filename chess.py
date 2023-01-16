@@ -297,6 +297,14 @@ def draw_main_menu(main_menu):
         main_menu.blit(btn_text, (400 * SCALE_X - btn_text.get_width() // 2,
                                   260 * SCALE_Y + 95 * SCALE_Y * _ - btn_text.get_height() // 2))
 
+    image = pygame.transform.scale(load_image('note/img.png'), (40 * SCALE_X, 40 * SCALE_Y))
+    main_menu.blit(image, (15 * SCALE_X, 545 * SCALE_Y,
+                           40 * SCALE_X, 40 * SCALE_Y))
+    pygame.draw.rect(main_menu, 'black', (10 * SCALE_X, 540 * SCALE_Y,
+                                          50 * SCALE_X, 50 * SCALE_Y), round(5 * SCALE_X))
+    if not volume:
+        pygame.draw.line(main_menu, 'black', (13 * SCALE_X, 543 * SCALE_Y), (57 * SCALE_X, 587 * SCALE_Y), 5)
+
 
 def draw_possible_moves(board, row, col):
     for i in range(8):
@@ -867,7 +875,9 @@ if __name__ == "__main__":
     check_sound = pygame.mixer.Sound('sounds/check.wav')
     figure = pygame.mixer.Sound('sounds/figure.wav')
     gameover = pygame.mixer.Sound('sounds/gameover.wav')
+    sounds = [intro, click, check_sound, figure, gameover]
     intro.play()
+    volume = 1
 
     animated_sprite = pygame.sprite.Group()
     knight = AnimatedSprite(9, 100, 100)
@@ -908,6 +918,11 @@ if __name__ == "__main__":
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
                 pygame.display.set_caption('Главное меню')
+            elif event.type == pygame.MOUSEBUTTONDOWN and (10 * SCALE_X <= event.pos[0] <= 60 * SCALE_X and
+                                                           540 * SCALE_Y <= event.pos[1] <= 590 * SCALE_Y):
+                volume = 0 if volume else 1
+                for sound in sounds:
+                    sound.set_volume(volume)
         main_menu.fill('#404147')
         draw_main_menu(main_menu)
         animated_sprite.update()
