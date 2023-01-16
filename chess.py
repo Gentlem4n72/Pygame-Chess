@@ -1,5 +1,6 @@
 import os
 import sys
+from challenges import challenges
 import pygame
 
 WHITE = 1
@@ -134,7 +135,6 @@ def checkmate(color, board):
                                                           get_cell((z.rect.x, z.rect.y))[0],
                                                           king_x,
                                                           king_y), figures)) is False:
-                            print(figure)
                             board.field[x][y] = old_figure
                             board.field[old_cords[1]][old_cords[0]] = figure
                             return
@@ -182,7 +182,7 @@ def get_pixels(coords):
     return nx, ny
 
 
-def draw_game_menu(screen, board, analysis=False):
+def draw_game_menu(screen, board, analysis=False, challenges=False):
     global check_alarm
 
     pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - INDENT * 3, HEIGHT - BOARD_SIZE - INDENT * 3,
@@ -556,13 +556,29 @@ class Pawn(pygame.sprite.Sprite):
         return False
 
     def can_attack(self, board, row, col, row1, col1):
+        if abs(row1 - row) == 2 and (row == 6 or row == 1) and abs(col1 - col) == 1:
+            return self.taking_on_the_pass(board, row1, col1)
+
         if row1 == row and col1 == col:
             return False
+
         direction = 1 if (self.color == BLACK) else -1
+
         if board.field[row1][col1]:
             if board.field[row1][col1] != self.color:
                 return (row + direction == row1
                         and (col + 1 == col1 or col - 1 == col1))
+        return False
+
+    def taking_on_the_pass(self, board, row1, col1):
+        possible_figure1 = board.field[row1][col1]
+        possible_figure2 = board.field[row1][col1]
+        if type(possible_figure1) is Pawn:
+            if possible_figure1.color == opponent(self.color):
+                return True
+        if type(possible_figure2) is Pawn:
+            if possible_figure2.color == opponent(self.color):
+                return True
         return False
 
 
@@ -916,6 +932,17 @@ if __name__ == "__main__":
                 all_pieces = pygame.sprite.Group()
                 board = Board()
                 analysis()
+                pygame.display.quit()
+                main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
+                pygame.display.set_caption('Главное меню')
+            elif event.type == pygame.MOUSEBUTTONDOWN and (250 * SCALE_X <= event.pos[0] <= 550 * SCALE_X and
+                                                           405 * SCALE_Y <= event.pos[1] <= 480 * SCALE_Y):
+                click.play()
+                check_alarm = False
+
+                pygame.display.quit()
+                screen = pygame.display.set_mode((WIDTH, HEIGHT))
+                challenges(screen)
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
                 pygame.display.set_caption('Главное меню')
