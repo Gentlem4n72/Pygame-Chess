@@ -221,8 +221,8 @@ def draw_game_menu(screen, board, analysis=False):
         screen.blit(surr_text, (413 * SCALE_X - surr_text.get_width() // 2,
                                 813 * SCALE_Y - surr_text.get_height() // 2))
 
-    turn = pygame.font.Font(None, round(50  * SCALE_X)).render('Ход ' + ('белых' if board.color == WHITE else 'чёрных'),
-                                             True, 'white')
+    turn = pygame.font.Font(None, round(50 * SCALE_X)).render('Ход ' + ('белых' if board.color == WHITE else 'чёрных'),
+                                                              True, 'white')
     screen.blit(turn, (150 * SCALE_X - turn.get_width() // 2, 155 * SCALE_Y - turn.get_height() // 2))
 
     checks = check(board)
@@ -732,7 +732,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 
 def game():
-    global board, check_alarm
+    global board, check_alarm, all_sprites, all_pieces
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -761,14 +761,19 @@ def game():
             gameover.play()
             choice = draw_win_screen(winner)
             if choice == 1:
+                click.play()
                 return
             elif choice == 2:
+                click.play()
+                all_sprites.empty()
+                all_pieces.empty()
                 board = Board()
                 check_alarm = False
         pygame.display.flip()
 
 
-def analysis(board):
+def analysis():
+    global board, check_alarm
     arrow = []
     arrows = []
     borders = []
@@ -817,22 +822,19 @@ def analysis(board):
         draw_game_menu(screen, board, analysis=True)
         all_sprites.update()
         all_sprites.draw(screen)
-        for elem in circles:
-            pygame.draw.circle(screen, 'green',
-                               tuple(map(lambda z: z + cell_size // 2, get_pixels((elem[0], elem[1])))),
-                               cell_size // 2, round(5 * SCALE_X))
-        for elem in borders:
-            pygame.draw.rect(screen, 'orange', (elem[0], elem[1], cell_size, cell_size), round(5 * SCALE_X))
-        for elem in arrows:
-            if len(elem) == 4:
-                pygame.draw.line(screen, 'orange', (elem[0], elem[1]), (elem[2], elem[3]), round(5 * SCALE_X))
-        winner = win_check(board)
+        winner = checkmate(board.color, board)
         if winner:
+            gameover.play()
             choice = draw_win_screen(winner)
             if choice == 1:
+                click.play()
                 return
             elif choice == 2:
+                click.play()
+                all_sprites.empty()
+                all_pieces.empty()
                 board = Board()
+                check_alarm = False
         pygame.display.flip()
 
 
@@ -891,7 +893,7 @@ if __name__ == "__main__":
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
                 board = Board()
-                analysis(board)
+                analysis()
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
                 pygame.display.set_caption('Главное меню')
