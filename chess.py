@@ -822,6 +822,17 @@ def analysis():
         draw_game_menu(screen, board, analysis=True)
         all_sprites.update()
         all_sprites.draw(screen)
+
+        for elem in circles:
+            pygame.draw.circle(screen, 'green',
+                               tuple(map(lambda z: z + cell_size // 2, get_pixels((elem[0], elem[1])))),
+                               cell_size // 2, round(5 * SCALE_X))
+        for elem in borders:
+            pygame.draw.rect(screen, 'orange', (elem[0], elem[1], cell_size, cell_size), round(5 * SCALE_X))
+        for elem in arrows:
+            if len(elem) == 4:
+                pygame.draw.line(screen, 'orange', (elem[0], elem[1]), (elem[2], elem[3]), round(5 * SCALE_X))
+
         winner = checkmate(board.color, board)
         if winner:
             gameover.play()
