@@ -171,22 +171,22 @@ def correct_coords(row, col):
 
 
 def get_cell(coords):
-    ny = (coords[1] - (HEIGHT - BOARD_SIZE - 50 * SCALE_Y)) // cell_size
-    nx = (coords[0] - (WIDTH - BOARD_SIZE - 50 * SCALE_X)) // cell_size
-    return int(nx), int(ny)
+    ny = (coords[1] - (HEIGHT - BOARD_SIZE - INDENT * 2)) // cell_size
+    nx = (coords[0] - (WIDTH - BOARD_SIZE - INDENT * 2)) // cell_size
+    return nx, ny
 
 
 def get_pixels(coords):
-    ny = coords[1] * cell_size + HEIGHT - BOARD_SIZE - 50 * SCALE_Y
-    nx = coords[0] * cell_size + WIDTH - BOARD_SIZE - 50 * SCALE_X
+    ny = coords[1] * cell_size + HEIGHT - BOARD_SIZE - INDENT * 2
+    nx = coords[0] * cell_size + WIDTH - BOARD_SIZE - INDENT * 2
     return nx, ny
 
 
 def draw_game_menu(screen, board, analysis=False):
     global check_alarm
 
-    pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - 75 * SCALE_X, HEIGHT - BOARD_SIZE - 75 * SCALE_Y,
-                                       BOARD_SIZE + 50 * SCALE_X, BOARD_SIZE + 50 * SCALE_Y))
+    pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - INDENT * 3, HEIGHT - BOARD_SIZE - INDENT * 3,
+                                       BOARD_SIZE + INDENT * 2, BOARD_SIZE + INDENT * 2))
     for i in range(8):
         letter = 'ABCDEFGH'[i]
         letter = pygame.font.Font(None, round(25 * SCALE_X)).render(letter, True, 'white')
@@ -197,8 +197,8 @@ def draw_game_menu(screen, board, analysis=False):
         screen.blit(number, (WIDTH - 40 * SCALE_X - number.get_width() // 2,
                              100 * SCALE_Y + 100 * SCALE_Y * i - number.get_height() // 2))
 
-    pygame.draw.rect(screen, 'black', (25 * SCALE_X, 100 * SCALE_Y, 775 * SCALE_X, 615 * SCALE_Y), round(5 * SCALE_X))
-    pygame.draw.rect(screen, 'black', (25 * SCALE_X, 100 * SCALE_Y, 775 * SCALE_X, 115 * SCALE_Y), round(5 * SCALE_X))
+    pygame.draw.rect(screen, 'black', (INDENT, 100 * SCALE_Y, 775 * SCALE_X, 615 * SCALE_Y), round(5 * SCALE_X))
+    pygame.draw.rect(screen, 'black', (INDENT, 100 * SCALE_Y, 775 * SCALE_X, 115 * SCALE_Y), round(5 * SCALE_X))
     color = board.color
     for i in range(len(board.protocol) if len(board.protocol) < 5 else 5):
         color = opponent(color)
@@ -206,10 +206,10 @@ def draw_game_menu(screen, board, analysis=False):
         text = pygame.font.Font(None, 50).render(text, True, 'white')
         screen.blit(text, (425 * SCALE_X - text.get_width() // 2,
                            215 * SCALE_Y + 100 * SCALE_Y * i + 52 * SCALE_Y - text.get_height() // 2))
-        pygame.draw.rect(screen, 'black', (25 * SCALE_X, 210 * SCALE_Y + 100 * SCALE_Y * i,
+        pygame.draw.rect(screen, 'black', (INDENT, 210 * SCALE_Y + 100 * SCALE_Y * i,
                                            775 * SCALE_X, 105 * SCALE_Y), round(5 * SCALE_X))
 
-    pygame.draw.rect(screen, 'black', (25 * SCALE_X, 25 * SCALE_Y, 300 * SCALE_X, 60 * SCALE_Y), round(5 * SCALE_X))
+    pygame.draw.rect(screen, 'black', (INDENT, INDENT, 300 * SCALE_X, 60 * SCALE_Y), round(5 * SCALE_X))
     return_text = pygame.font.Font(None, round(40 * SCALE_X)).render('<- На главное меню', True, 'white')
     screen.blit(return_text, (175 * SCALE_X - return_text.get_width() // 2,
                               55 * SCALE_Y - return_text.get_height() // 2))
@@ -352,8 +352,8 @@ class Board(pygame.sprite.Sprite):
         self.color = WHITE
         self.protocol = []
         self.field = []
-        self.indent_h = WIDTH - BOARD_SIZE - 50 * SCALE_X
-        self.indent_v = HEIGHT - BOARD_SIZE - 50 * SCALE_Y
+        self.indent_h = WIDTH - BOARD_SIZE - INDENT * 2
+        self.indent_v = HEIGHT - BOARD_SIZE - INDENT * 2
         for row in range(8):
             self.field.append([None] * 8)
         self.field[0] = [
@@ -381,8 +381,8 @@ class Board(pygame.sprite.Sprite):
             Rook(WHITE, self.indent_h + cell_size * 7, self.indent_v + cell_size * 7)
         ]
         self.image = pygame.Surface((BOARD_SIZE, BOARD_SIZE))
-        self.rect = pygame.Rect(WIDTH - BOARD_SIZE - 50 * SCALE_X, HEIGHT - BOARD_SIZE - 50 * SCALE_Y,
-                                WIDTH - 25 * SCALE_X, HEIGHT - 25 * SCALE_Y)
+        self.rect = pygame.Rect(WIDTH - BOARD_SIZE - INDENT * 2, HEIGHT - BOARD_SIZE - INDENT * 2,
+                                WIDTH - INDENT, HEIGHT - INDENT)
         self.image.fill('#b58763')
         for i in range(0, BOARD_SIZE, cell_size):
             for j in range(0 if i % (cell_size * 2) == 0 else cell_size, BOARD_SIZE, cell_size * 2):
@@ -846,6 +846,7 @@ if __name__ == "__main__":
     HEIGHT = int(900 * SCALE_Y)
     cell_size = int(100 * SCALE_X)
     BOARD_SIZE = cell_size * 8
+    INDENT = int(25 * SCALE_X)
     main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
     pygame.display.set_caption('Главное меню')
 
