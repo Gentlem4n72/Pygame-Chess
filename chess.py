@@ -4,9 +4,6 @@ import pygame
 
 WHITE = 1
 BLACK = 2
-WIDTH = 1700
-HEIGHT = 900
-BOARD_SIZE = 800
 
 
 def load_image(name, colorkey=None):
@@ -173,65 +170,69 @@ def correct_coords(row, col):
 
 
 def get_cell(coords):
-    ny = (coords[1] - (HEIGHT - BOARD_SIZE - 50)) // cell_size
-    nx = (coords[0] - (WIDTH - BOARD_SIZE - 50)) // cell_size
+    ny = (coords[1] - (HEIGHT - BOARD_SIZE - INDENT * 2)) // cell_size
+    nx = (coords[0] - (WIDTH - BOARD_SIZE - INDENT * 2)) // cell_size
     return nx, ny
 
 
 def get_pixels(coords):
-    ny = coords[1] * cell_size + HEIGHT - BOARD_SIZE - 50
-    nx = coords[0] * cell_size + WIDTH - BOARD_SIZE - 50
+    ny = coords[1] * cell_size + HEIGHT - BOARD_SIZE - INDENT * 2
+    nx = coords[0] * cell_size + WIDTH - BOARD_SIZE - INDENT * 2
     return nx, ny
 
 
 def draw_game_menu(screen, board, analysis=False):
     global check_alarm
 
-    pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - 75, HEIGHT - BOARD_SIZE - 75,
-                                       BOARD_SIZE + 50, BOARD_SIZE + 50))
+    pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - INDENT * 3, HEIGHT - BOARD_SIZE - INDENT * 3,
+                                       BOARD_SIZE + INDENT * 2, BOARD_SIZE + INDENT * 2))
     for i in range(8):
         letter = 'ABCDEFGH'[i]
-        letter = pygame.font.Font(None, 25).render(letter, True, 'white')
-        screen.blit(letter, (WIDTH - BOARD_SIZE + 100 * i - letter.get_width() // 2,
-                             HEIGHT - 37 - letter.get_height() // 2))
+        letter = pygame.font.Font(None, round(25 * SCALE_X)).render(letter, True, 'white')
+        screen.blit(letter, (WIDTH - BOARD_SIZE + 100 * SCALE_X * i - letter.get_width() // 2,
+                             HEIGHT - 37 * SCALE_Y - letter.get_height() // 2))
     for i in range(8):
-        number = pygame.font.Font(None, 25).render(str(8 - i), True, 'white')
-        screen.blit(number, (WIDTH - 40 - number.get_width() // 2,
-                             100 + 100 * i - number.get_height() // 2))
+        number = pygame.font.Font(None, round(25 * SCALE_X)).render(str(8 - i), True, 'white')
+        screen.blit(number, (WIDTH - 40 * SCALE_X - number.get_width() // 2,
+                             100 * SCALE_Y + 100 * SCALE_Y * i - number.get_height() // 2))
 
-    pygame.draw.rect(screen, 'black', (25, 100, 775, 615), 5)
-    pygame.draw.rect(screen, 'black', (25, 100, 775, 115), 5)
+    pygame.draw.rect(screen, 'black', (INDENT, 100 * SCALE_Y, 775 * SCALE_X, 615 * SCALE_Y), round(5 * SCALE_X))
+    pygame.draw.rect(screen, 'black', (INDENT, 100 * SCALE_Y, 775 * SCALE_X, 115 * SCALE_Y), round(5 * SCALE_X))
     color = board.color
     for i in range(len(board.protocol) if len(board.protocol) < 5 else 5):
         color = opponent(color)
         text = ' -> '.join(board.protocol[-5:][i])
         text = pygame.font.Font(None, 50).render(text, True, 'white')
-        screen.blit(text, (425 - text.get_width() // 2, 215 + 100 * i + 52 - text.get_height() // 2))
-        pygame.draw.rect(screen, 'black', (25, 210 + 100 * i, 775, 105), 5)
+        screen.blit(text, (425 * SCALE_X - text.get_width() // 2,
+                           215 * SCALE_Y + 100 * SCALE_Y * i + 52 * SCALE_Y - text.get_height() // 2))
+        pygame.draw.rect(screen, 'black', (INDENT, 210 * SCALE_Y + 100 * SCALE_Y * i,
+                                           775 * SCALE_X, 105 * SCALE_Y), round(5 * SCALE_X))
 
-    pygame.draw.rect(screen, 'black', (25, 25, 300, 60), 5)
-    return_text = pygame.font.Font(None, 40).render('<- На главное меню', True, 'white')
-    screen.blit(return_text, (175 - return_text.get_width() // 2, 55 - return_text.get_height() // 2))
+    pygame.draw.rect(screen, 'black', (INDENT, INDENT, 300 * SCALE_X, 60 * SCALE_Y), round(5 * SCALE_X))
+    return_text = pygame.font.Font(None, round(40 * SCALE_X)).render('<- На главное меню', True, 'white')
+    screen.blit(return_text, (175 * SCALE_X - return_text.get_width() // 2,
+                              55 * SCALE_Y - return_text.get_height() // 2))
 
     if not analysis:
-        pygame.draw.rect(screen, 'black', (150, 750, 525, 125), 5)
-        pygame.draw.rect(screen, '#660000', (155, 755, 515, 115))
-        surr_text = pygame.font.Font(None, 50).render('Сдаться', True, 'white')
-        screen.blit(surr_text, (413 - surr_text.get_width() // 2, 813 - surr_text.get_height() // 2))
+        pygame.draw.rect(screen, 'black', (150 * SCALE_X, 750 * SCALE_Y, 525 * SCALE_X, 125 * SCALE_Y), round(5 * SCALE_X))
+        pygame.draw.rect(screen, '#660000', (155 * SCALE_X, 755 * SCALE_Y, 515 * SCALE_X, 115 * SCALE_Y))
+        surr_text = pygame.font.Font(None, round(50 * SCALE_X)).render('Сдаться', True, 'white')
+        screen.blit(surr_text, (413 * SCALE_X - surr_text.get_width() // 2,
+                                813 * SCALE_Y - surr_text.get_height() // 2))
 
-    turn = pygame.font.Font(None, 50).render('Ход ' + ('белых' if board.color == WHITE else 'чёрных'),
-                                             True, 'white')
-    screen.blit(turn, (150 - turn.get_width() // 2, 155 - turn.get_height() // 2))
+    turn = pygame.font.Font(None, round(50 * SCALE_X)).render('Ход ' + ('белых' if board.color == WHITE else 'чёрных'),
+                                                              True, 'white')
+    screen.blit(turn, (150 * SCALE_X - turn.get_width() // 2, 155 * SCALE_Y - turn.get_height() // 2))
 
     checks = check(board)
     if checks[0]:
-        check_text = pygame.font.Font(None, 50).render('Шах белым', True, 'white')
-        screen.blit(check_text, (660 - check_text.get_width() // 2,
-                                 130 - check_text.get_height() // 2))
+        check_text = pygame.font.Font(None, round(50 * SCALE_X)).render('Шах белым', True, 'white')
+        screen.blit(check_text, (660 * SCALE_X - check_text.get_width() // 2,
+                                 130 * SCALE_Y - check_text.get_height() // 2))
     if checks[1]:
-        check_text = pygame.font.Font(None, 50).render('Шах чёрным', True, 'white')
-        screen.blit(check_text, (660 - check_text.get_width() // 2,
-                                 180 - check_text.get_height() // 2))
+        check_text = pygame.font.Font(None, round(50 * SCALE_X)).render('Шах чёрным', True, 'white')
+        screen.blit(check_text, (660 * SCALE_X - check_text.get_width() // 2,
+                                 180 * SCALE_Y - check_text.get_height() // 2))
 
     if not check_alarm and (checks[0] or checks[1]):
         check_sound.play()
@@ -244,24 +245,24 @@ def draw_win_screen(winner):
     v = 350
     fps = 60
     clock = pygame.time.Clock()
-    y = -500
+    y = -500 * SCALE_Y
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if y < 150:
-                    y = 150
+                if y < 150 * SCALE_Y:
+                    y = 150 * SCALE_Y
                 else:
                     mx, my = event.pos
-                    if 375 <= mx <= 675 and 550 <= my <= 625:
+                    if 375 * SCALE_X <= mx <= 675 * SCALE_X and 550 * SCALE_Y <= my <= 625 * SCALE_Y:
                         return 1
-                    elif 725 <= mx <= 1025 and 550 <= my <= 625:
+                    elif 725 * SCALE_X <= mx <= 1025 * SCALE_X and 550 * SCALE_Y <= my <= 625 * SCALE_Y:
                         return 2
-                    elif 1075 <= mx <= 1375 and 550 <= my <= 625:
+                    elif 1075 * SCALE_X <= mx <= 1375 * SCALE_X and 550 * SCALE_Y <= my <= 625 * SCALE_Y:
                         return 3
-        if y >= 150:
-            y = 150
+        if y >= 150 * SCALE_Y:
+            y = 150 * SCALE_Y
         else:
             y += v / fps
         clock.tick(fps)
@@ -269,26 +270,39 @@ def draw_win_screen(winner):
         draw_game_menu(screen, board)
         all_sprites.update()
         all_sprites.draw(screen)
-        pygame.draw.rect(screen, '#404147', (300, y, 1150, 600))
-        pygame.draw.rect(screen, 'black', (300, y, 1150, 600), 5)
+        pygame.draw.rect(screen, '#404147', (300 * SCALE_X, y, 1150 * SCALE_X, 600 * SCALE_Y))
+        pygame.draw.rect(screen, 'black', (300 * SCALE_X, y, 1150 * SCALE_X, 600 * SCALE_Y), round(5 * SCALE_X))
         for _ in range(3):
             text = ['На главное меню', 'Реванш', 'Анализ партии'][_]
-            pygame.draw.rect(screen, 'black', (375 + 350 * _, y + 400, 300, 75), 5)
-            text = pygame.font.Font(None, 45).render(text, True, 'white')
-            screen.blit(text, (525 + 350 * _ - text.get_width() // 2, y + 435 - text.get_height() // 2))
-        text = pygame.font.Font(None, 70).render('Победа ' + ('белых' if winner == WHITE else 'чёрных'), True, 'white')
-        screen.blit(text, (875 - text.get_width() // 2, y + 150 - text.get_height() // 2))
+            pygame.draw.rect(screen, 'black', (375 * SCALE_X + 350 * SCALE_X * _, y + 400 * SCALE_Y,
+                                               300 * SCALE_X, 75 * SCALE_Y), 5)
+            text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
+            screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
+                               y + 435 * SCALE_Y - text.get_height() // 2))
+        text = pygame.font.Font(None, round(70 * SCALE_Y)).render('Победа ' + ('белых' if winner == WHITE
+                                                                               else 'чёрных'), True, 'white')
+        screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
         pygame.display.flip()
 
 
 def draw_main_menu(main_menu):
-    text = pygame.font.Font(None, 100).render('Шах и Мат', True, 'white')
-    main_menu.blit(text, (400 - text.get_width() // 2, 150 - text.get_height() // 2))
+    text = pygame.font.Font(None, round(100 * SCALE_X)).render('Шах и Мат', True, 'white')
+    main_menu.blit(text, (400 * SCALE_X - text.get_width() // 2, 150 * SCALE_Y - text.get_height() // 2))
     for _ in range(3):
         text = ['Играть', 'Анализ партии', 'Испытания'][_]
-        pygame.draw.rect(main_menu, 'black', (250, 225 + 95 * _, 300, 75), 5)
-        btn_text = pygame.font.Font(None, 45).render(text, True, 'white')
-        main_menu.blit(btn_text, (400 - btn_text.get_width() // 2, 260 + 95 * _ - btn_text.get_height() // 2))
+        pygame.draw.rect(main_menu, 'black', (250 * SCALE_X, (225 + 95 * _) * SCALE_Y,
+                                              300 * SCALE_X, 75 * SCALE_Y), round(5 * SCALE_X))
+        btn_text = pygame.font.Font(None, round(45 * SCALE_X)).render(text, True, 'white')
+        main_menu.blit(btn_text, (400 * SCALE_X - btn_text.get_width() // 2,
+                                  260 * SCALE_Y + 95 * SCALE_Y * _ - btn_text.get_height() // 2))
+
+    image = pygame.transform.scale(load_image('note/img.png'), (40 * SCALE_X, 40 * SCALE_Y))
+    main_menu.blit(image, (15 * SCALE_X, 545 * SCALE_Y,
+                           40 * SCALE_X, 40 * SCALE_Y))
+    pygame.draw.rect(main_menu, 'black', (10 * SCALE_X, 540 * SCALE_Y,
+                                          50 * SCALE_X, 50 * SCALE_Y), round(5 * SCALE_X))
+    if not volume:
+        pygame.draw.line(main_menu, 'black', (13 * SCALE_X, 543 * SCALE_Y), (57 * SCALE_X, 587 * SCALE_Y), 5)
 
 
 def draw_possible_moves(board, row, col):
@@ -298,11 +312,11 @@ def draw_possible_moves(board, row, col):
             if (piece.can_attack(board, *[*get_cell((piece.rect.x + 1, piece.rect.y + 1))][::-1], i, j) and
                     board.field[i][j]):
                 if board.field[i][j].color == opponent(piece.color):
-                    pygame.draw.rect(screen, 'red', (*get_pixels((j, i)), cell_size, cell_size), 5)
+                    pygame.draw.rect(screen, 'red', (*get_pixels((j, i)), cell_size, cell_size), round(5 * SCALE_X))
             elif piece.can_move(board, *[*get_cell((piece.rect.x + 1, piece.rect.y + 1))][::-1], i, j):
                 pygame.draw.circle(screen, 'green',
-                                   tuple(map(lambda z: z + cell_size // 2, get_pixels((j, i)))), 10)
-    pygame.draw.rect(screen, 'green', (*get_pixels((col, row)), cell_size, cell_size), 5)
+                                   tuple(map(lambda z: z + cell_size // 2, get_pixels((j, i)))), round(10 * SCALE_X))
+    pygame.draw.rect(screen, 'green', (*get_pixels((col, row)), cell_size, cell_size), round(5 * SCALE_X))
     pygame.display.flip()
 
 
@@ -310,31 +324,31 @@ def draw_selection_dialog():
     while True:
         pygame.draw.rect(screen, '#404147', (cell_size + board.indent_h, cell_size * 3 + board.indent_v,
                                              cell_size * 6, cell_size * 2))
-        text = pygame.font.Font(None, 50).render('Выберите фигуру', True, 'white')
+        text = pygame.font.Font(None, round(50 * SCALE_X)).render('Выберите фигуру', True, 'white')
         screen.blit(text, (cell_size + board.indent_h + cell_size * 3 - text.get_width() // 2,
                            cell_size * 3.25 + board.indent_v - text.get_height() // 2))
-        x, y = cell_size + board.indent_h + 25, cell_size * 3 + board.indent_v + 60
+        x, y = cell_size + board.indent_h + 25 * SCALE_X, cell_size * 3 + board.indent_v + 60 * SCALE_Y
         for i in range(4):
             piece = ['rook', 'knight', 'bishop', 'queen'][i]
             screen.blit(pygame.transform.scale(load_image(f'W{piece}.png' if board.color == BLACK else f'b{piece}.png'),
-                                               (cell_size, cell_size)), (x + 150 * i, y))
+                                               (cell_size, cell_size)), (x + 150 * SCALE_X * i, y))
             pygame.draw.rect(screen, 'white',
-                             (x + 150 * i, y, cell_size, cell_size), 5)
+                             (x + 150 * SCALE_X * i, y, cell_size, cell_size), round(5 * SCALE_X))
         pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if x <= event.pos[0] <= x + 100 and y <= event.pos[1] <= y + cell_size:
+                if x <= event.pos[0] <= x + 100 * SCALE_X and y <= event.pos[1] <= y + cell_size:
                     click.play()
                     return Rook
-                elif x + 150 <= event.pos[0] <= x + 250 and y <= event.pos[1] <= y + cell_size:
+                elif x + 150 * SCALE_X <= event.pos[0] <= x + 250 * SCALE_X and y <= event.pos[1] <= y + cell_size:
                     click.play()
                     return Knight
-                elif x + 300 <= event.pos[0] <= x + 400 and y <= event.pos[1] <= y + cell_size:
+                elif x + 300 * SCALE_X <= event.pos[0] <= x + 400 * SCALE_X and y <= event.pos[1] <= y + cell_size:
                     click.play()
                     return Bishop
-                elif x + 450 <= event.pos[0] <= x + 550 and y <= event.pos[1] <= y + cell_size:
+                elif x + 450 * SCALE_X <= event.pos[0] <= x + 550 * SCALE_X and y <= event.pos[1] <= y + cell_size:
                     click.play()
                     return Queen
 
@@ -345,8 +359,8 @@ class Board(pygame.sprite.Sprite):
         self.color = WHITE
         self.protocol = []
         self.field = []
-        self.indent_h = WIDTH - BOARD_SIZE - 50
-        self.indent_v = HEIGHT - BOARD_SIZE - 50
+        self.indent_h = WIDTH - BOARD_SIZE - INDENT * 2
+        self.indent_v = HEIGHT - BOARD_SIZE - INDENT * 2
         for row in range(8):
             self.field.append([None] * 8)
         self.field[0] = [
@@ -373,12 +387,13 @@ class Board(pygame.sprite.Sprite):
             Knight(WHITE, self.indent_h + cell_size * 6, self.indent_v + cell_size * 7),
             Rook(WHITE, self.indent_h + cell_size * 7, self.indent_v + cell_size * 7)
         ]
-        self.image = pygame.Surface((800, 800))
-        self.rect = pygame.Rect(WIDTH - BOARD_SIZE - 50, HEIGHT - BOARD_SIZE - 50, WIDTH - 25, HEIGHT - 25)
-        self.image.fill('#f0dab5')
-        for i in range(0, WIDTH, cell_size):
-            for j in range(0 if i % (cell_size * 2) == 0 else cell_size, WIDTH, cell_size * 2):
-                pygame.draw.rect(self.image, '#b58763', (i, WIDTH - j - cell_size, cell_size, cell_size))
+        self.image = pygame.Surface((BOARD_SIZE, BOARD_SIZE))
+        self.rect = pygame.Rect(WIDTH - BOARD_SIZE - INDENT * 2, HEIGHT - BOARD_SIZE - INDENT * 2,
+                                WIDTH - INDENT, HEIGHT - INDENT)
+        self.image.fill('#b58763')
+        for i in range(0, BOARD_SIZE, cell_size):
+            for j in range(0 if i % (cell_size * 2) == 0 else cell_size, BOARD_SIZE, cell_size * 2):
+                pygame.draw.rect(self.image, '#f0dab5', (j, i, cell_size, cell_size))
 
     def current_player_color(self):
         return self.color
@@ -710,21 +725,21 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.frames = []
         self.create_frames(frames)
         self.cur_frame = 0
-        self.image = self.frames[self.cur_frame]
-        self.rect = self.rect.move(x, y)
+        self.image = pygame.transform.scale(self.frames[self.cur_frame], (100 * SCALE_X, 100 * SCALE_Y))
+        self.rect = self.rect.move(x * SCALE_X, y * SCALE_Y)
 
     def create_frames(self, frames):
-        self.rect = pygame.Rect(0, -10, 100, 100)
+        self.rect = pygame.Rect(0, -10 * SCALE_Y, 100 * SCALE_X, 100 * SCALE_Y)
         for i in range(frames):
             self.frames.append(load_image(f'knight/{str(i)}.png'))
 
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        self.image = self.frames[self.cur_frame]
+        self.image = pygame.transform.scale(self.frames[self.cur_frame], (100 * SCALE_X, 100 * SCALE_Y))
 
 
 def game():
-    global board, check_alarm
+    global board, check_alarm, all_sprites, all_pieces
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -738,10 +753,10 @@ def game():
                             board.color == board.field[y][x].get_color()):
                         figure.play()
                         board.move_piece(x, y)
-                elif 150 <= x <= 675 and 750 <= y <= 825:
+                elif 150 * SCALE_X <= x <= 675 * SCALE_X and 750 * SCALE_Y <= y <= 825 * SCALE_Y:
                     click.play()
                     board.surrender()
-                elif 25 <= x <= 325 and 25 <= y <= 85:
+                elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
                     click.play()
                     return
         screen.fill('#404147')
@@ -753,14 +768,19 @@ def game():
             gameover.play()
             choice = draw_win_screen(winner)
             if choice == 1:
+                click.play()
                 return
             elif choice == 2:
+                click.play()
+                all_sprites.empty()
+                all_pieces.empty()
                 board = Board()
                 check_alarm = False
         pygame.display.flip()
 
 
-def analysis(board):
+def analysis():
+    global board, check_alarm
     arrow = []
     arrows = []
     borders = []
@@ -801,7 +821,7 @@ def analysis(board):
                             circles.append((x, y))
                         else:
                             circles.remove((x, y))
-                elif 25 <= x <= 325 and 25 <= y <= 85:
+                elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
                     click.play()
                     return
 
@@ -809,22 +829,30 @@ def analysis(board):
         draw_game_menu(screen, board, analysis=True)
         all_sprites.update()
         all_sprites.draw(screen)
+
         for elem in circles:
             pygame.draw.circle(screen, 'green',
                                tuple(map(lambda z: z + cell_size // 2, get_pixels((elem[0], elem[1])))),
-                               cell_size // 2, 5)
+                               cell_size // 2, round(5 * SCALE_X))
         for elem in borders:
-            pygame.draw.rect(screen, 'orange', (elem[0], elem[1], cell_size, cell_size), 5)
+            pygame.draw.rect(screen, 'orange', (elem[0], elem[1], cell_size, cell_size), round(5 * SCALE_X))
         for elem in arrows:
             if len(elem) == 4:
-                pygame.draw.line(screen, 'orange', (elem[0], elem[1]), (elem[2], elem[3]), 5)
-        winner = win_check(board)
+                pygame.draw.line(screen, 'orange', (elem[0], elem[1]), (elem[2], elem[3]), round(5 * SCALE_X))
+
+        winner = checkmate(board.color, board)
         if winner:
+            gameover.play()
             choice = draw_win_screen(winner)
             if choice == 1:
+                click.play()
                 return
             elif choice == 2:
+                click.play()
+                all_sprites.empty()
+                all_pieces.empty()
                 board = Board()
+                check_alarm = False
         pygame.display.flip()
 
 
@@ -832,7 +860,14 @@ if __name__ == "__main__":
     running = True
     pygame.mixer.pre_init(44100, -16, 1, 512)
     pygame.init()
-    main_menu = pygame.display.set_mode((800, 600))
+    w, h = pygame.display.Info().current_w, pygame.display.Info().current_h
+    SCALE_X, SCALE_Y = float(w) / 1920, float(h) / 1080
+    WIDTH = int(1700 * SCALE_X)
+    HEIGHT = int(900 * SCALE_Y)
+    cell_size = int(100 * SCALE_X)
+    BOARD_SIZE = cell_size * 8
+    INDENT = int(25 * SCALE_X)
+    main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
     pygame.display.set_caption('Главное меню')
 
     intro = pygame.mixer.Sound('sounds/intro.wav')
@@ -840,7 +875,9 @@ if __name__ == "__main__":
     check_sound = pygame.mixer.Sound('sounds/check.wav')
     figure = pygame.mixer.Sound('sounds/figure.wav')
     gameover = pygame.mixer.Sound('sounds/gameover.wav')
+    sounds = [intro, click, check_sound, figure, gameover]
     intro.play()
+    volume = 1
 
     animated_sprite = pygame.sprite.Group()
     knight = AnimatedSprite(9, 100, 100)
@@ -851,8 +888,8 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN and (250 <= event.pos[0] <= 550 and
-                                                           225 <= event.pos[1] <= 300):
+            elif event.type == pygame.MOUSEBUTTONDOWN and (250 * SCALE_X <= event.pos[0] <= 550 * SCALE_X and
+                                                           225 * SCALE_Y <= event.pos[1] <= 300 * SCALE_Y):
                 click.play()
                 check_alarm = False
 
@@ -861,14 +898,13 @@ if __name__ == "__main__":
                 pygame.display.set_caption('Играть')
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
-                cell_size = BOARD_SIZE // 8
                 board = Board()
                 game()
                 pygame.display.quit()
-                main_menu = pygame.display.set_mode((800, 600))
+                main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
                 pygame.display.set_caption('Главное меню')
-            elif event.type == pygame.MOUSEBUTTONDOWN and (250 <= event.pos[0] <= 550 and
-                                                           320 <= event.pos[1] <= 395):
+            elif event.type == pygame.MOUSEBUTTONDOWN and (250 * SCALE_X <= event.pos[0] <= 550 * SCALE_X and
+                                                           320 * SCALE_Y <= event.pos[1] <= 395 * SCALE_Y):
                 click.play()
                 check_alarm = False
 
@@ -877,12 +913,16 @@ if __name__ == "__main__":
                 pygame.display.set_caption('Анализ партии')
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
-                cell_size = BOARD_SIZE // 8
                 board = Board()
-                analysis(board)
+                analysis()
                 pygame.display.quit()
-                main_menu = pygame.display.set_mode((800, 600))
+                main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
                 pygame.display.set_caption('Главное меню')
+            elif event.type == pygame.MOUSEBUTTONDOWN and (10 * SCALE_X <= event.pos[0] <= 60 * SCALE_X and
+                                                           540 * SCALE_Y <= event.pos[1] <= 590 * SCALE_Y):
+                volume = 0 if volume else 1
+                for sound in sounds:
+                    sound.set_volume(volume)
         main_menu.fill('#404147')
         draw_main_menu(main_menu)
         animated_sprite.update()
