@@ -221,8 +221,8 @@ def draw_game_menu(screen, board, analysis=False):
         screen.blit(surr_text, (413 * SCALE_X - surr_text.get_width() // 2,
                                 813 * SCALE_Y - surr_text.get_height() // 2))
 
-    turn = pygame.font.Font(None, round(50  * SCALE_X)).render('Ход ' + ('белых' if board.color == WHITE else 'чёрных'),
-                                             True, 'white')
+    turn = pygame.font.Font(None, round(50 * SCALE_X)).render('Ход ' + ('белых' if board.color == WHITE else 'чёрных'),
+                                                              True, 'white')
     screen.blit(turn, (150 * SCALE_X - turn.get_width() // 2, 155 * SCALE_Y - turn.get_height() // 2))
 
     checks = check(board)
@@ -296,6 +296,14 @@ def draw_main_menu(main_menu):
         btn_text = pygame.font.Font(None, round(45 * SCALE_X)).render(text, True, 'white')
         main_menu.blit(btn_text, (400 * SCALE_X - btn_text.get_width() // 2,
                                   260 * SCALE_Y + 95 * SCALE_Y * _ - btn_text.get_height() // 2))
+
+    image = pygame.transform.scale(load_image('note/img.png'), (40 * SCALE_X, 40 * SCALE_Y))
+    main_menu.blit(image, (15 * SCALE_X, 545 * SCALE_Y,
+                           40 * SCALE_X, 40 * SCALE_Y))
+    pygame.draw.rect(main_menu, 'black', (10 * SCALE_X, 540 * SCALE_Y,
+                                          50 * SCALE_X, 50 * SCALE_Y), round(5 * SCALE_X))
+    if not volume:
+        pygame.draw.line(main_menu, 'black', (13 * SCALE_X, 543 * SCALE_Y), (57 * SCALE_X, 587 * SCALE_Y), 5)
 
 
 def draw_possible_moves(board, row, col):
@@ -732,7 +740,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 
 def game():
-    global board, check_alarm
+    global board, check_alarm, all_sprites, all_pieces
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -761,14 +769,19 @@ def game():
             gameover.play()
             choice = draw_win_screen(winner)
             if choice == 1:
+                click.play()
                 return
             elif choice == 2:
+                click.play()
+                all_sprites.empty()
+                all_pieces.empty()
                 board = Board()
                 check_alarm = False
         pygame.display.flip()
 
 
-def analysis(board):
+def analysis():
+    global board, check_alarm
     arrow = []
     arrows = []
     borders = []
@@ -817,6 +830,7 @@ def analysis(board):
         draw_game_menu(screen, board, analysis=True)
         all_sprites.update()
         all_sprites.draw(screen)
+
         for elem in circles:
             pygame.draw.circle(screen, 'green',
                                tuple(map(lambda z: z + cell_size // 2, get_pixels((elem[0], elem[1])))),
@@ -826,13 +840,20 @@ def analysis(board):
         for elem in arrows:
             if len(elem) == 4:
                 pygame.draw.line(screen, 'orange', (elem[0], elem[1]), (elem[2], elem[3]), round(5 * SCALE_X))
-        winner = win_check(board)
+
+        winner = checkmate(board.color, board)
         if winner:
+            gameover.play()
             choice = draw_win_screen(winner)
             if choice == 1:
+                click.play()
                 return
             elif choice == 2:
+                click.play()
+                all_sprites.empty()
+                all_pieces.empty()
                 board = Board()
+                check_alarm = False
         pygame.display.flip()
 
 
@@ -855,7 +876,9 @@ if __name__ == "__main__":
     check_sound = pygame.mixer.Sound('sounds/check.wav')
     figure = pygame.mixer.Sound('sounds/figure.wav')
     gameover = pygame.mixer.Sound('sounds/gameover.wav')
+    sounds = [intro, click, check_sound, figure, gameover]
     intro.play()
+    volume = 1
 
     animated_sprite = pygame.sprite.Group()
     knight = AnimatedSprite(9, 100, 100)
@@ -892,10 +915,15 @@ if __name__ == "__main__":
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
                 board = Board()
-                analysis(board)
+                analysis()
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
                 pygame.display.set_caption('Главное меню')
+            elif event.type == pygame.MOUSEBUTTONDOWN and (10 * SCALE_X <= event.pos[0] <= 60 * SCALE_X and
+                                                           540 * SCALE_Y <= event.pos[1] <= 590 * SCALE_Y):
+                volume = 0 if volume else 1
+                for sound in sounds:
+                    sound.set_volume(volume)
         main_menu.fill('#404147')
         draw_main_menu(main_menu)
         animated_sprite.update()
