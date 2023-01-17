@@ -3,6 +3,7 @@ import sys
 from challenges import challenges
 import pygame
 import tkinter, tkinter.filedialog
+import datetime as dt
 
 WHITE = 1
 BLACK = 2
@@ -838,8 +839,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 def game():
     global board, check_alarm, all_sprites, all_pieces
-    protocol = open('protocols/example.txt', mode='w+')  # нужно еще придумать генерацию новых имен файлов, но мне лень
-    # если файла нет, создаст его
+    protocol = open(f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt', mode='w+')
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
