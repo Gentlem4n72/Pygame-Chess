@@ -429,7 +429,8 @@ class Board(pygame.sprite.Sprite):
                         elif (row == row1 and
                               self.field[row1][col1].char() == 'R' and
                               self.field[row][col].char() == 'K' and
-                              self.field[row][col].turn == 0):
+                              self.field[row][col].turn == 0 and
+                              self.field[row1][col1].turn == 0):
                             step = -1 if col >= col1 else 1
                             if castling(self.field, row, col, col1, step):
                                 rook = self.field[row1][col1]
@@ -437,16 +438,16 @@ class Board(pygame.sprite.Sprite):
                                     self.field[row][col] = None
                                     self.field[row][col - 2] = piece
                                     self.field[row1][col1] = None
-                                    self.field[row1][col1 + 2] = rook
+                                    self.field[row1][col1 + 3] = rook
                                     piece.rect.x, piece.rect.y = get_pixels((col - 2, row))
-                                    rook.rect.x, piece.rect.y = get_pixels((col1 + 2, row1))
+                                    rook.rect.x, piece.rect.y = get_pixels((col1 + 3, row1))
                                 elif step == 1:
                                     self.field[row][col] = None
                                     self.field[row][col + 2] = piece
                                     self.field[row1][col1] = None
-                                    self.field[row1][col1 - 3] = rook
+                                    self.field[row1][col1 - 2] = rook
                                     piece.rect.x, piece.rect.y = get_pixels((col + 2, row))
-                                    rook.rect.x, piece.rect.y = get_pixels((col1 - 3, row1))
+                                    rook.rect.x, piece.rect.y = get_pixels((col1 - 2, row1))
                                 figure.play()
                                 self.color = opponent(self.color)
                                 piece.turn += 1
@@ -472,7 +473,7 @@ class Board(pygame.sprite.Sprite):
                                 piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
                                 piece.pass_eating[2]] = None
                             piece.pass_eating = [False, 0, 0]
-                    if piece.char() == 'K':
+                    if piece.char() == 'K' or piece.char() == 'R':
                         piece.turn += 1
                     check(self)
                     pawn_conversion(board)
@@ -495,6 +496,7 @@ class Rook(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x, y
+        self.turn = 0
 
     def get_color(self):
         return self.color
