@@ -280,8 +280,8 @@ def draw_win_screen(winner):
             text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
             screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
                                y + 435 * SCALE_Y - text.get_height() // 2))
-        text = pygame.font.Font(None, round(70 * SCALE_Y)).render('Победа ' + ('белых' if winner == WHITE
-                                                                               else 'чёрных'), True, 'white')
+        text = pygame.font.Font(None, round(70 * SCALE_Y)).render('Победа ' + ('белых.' if winner == WHITE
+                                                                               else 'чёрных.'), True, 'white')
         screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
         pygame.display.flip()
 
@@ -352,6 +352,51 @@ def draw_selection_dialog():
                 elif x + 450 * SCALE_X <= event.pos[0] <= x + 550 * SCALE_X and y <= event.pos[1] <= y + cell_size:
                     click.play()
                     return Queen
+
+
+def surrender(winner):
+    v = 350
+    fps = 60
+    clock = pygame.time.Clock()
+    y = -500 * SCALE_Y
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if y < 150 * SCALE_Y:
+                    y = 150 * SCALE_Y
+                else:
+                    mx, my = event.pos
+                    if 375 * SCALE_X <= mx <= 675 * SCALE_X and 550 * SCALE_Y <= my <= 625 * SCALE_Y:
+                        return 1
+                    elif 725 * SCALE_X <= mx <= 1025 * SCALE_X and 550 * SCALE_Y <= my <= 625 * SCALE_Y:
+                        return 2
+                    elif 1075 * SCALE_X <= mx <= 1375 * SCALE_X and 550 * SCALE_Y <= my <= 625 * SCALE_Y:
+                        return 3
+        if y >= 150 * SCALE_Y:
+            y = 150 * SCALE_Y
+        else:
+            y += v / fps
+        clock.tick(fps)
+        screen.fill('#404147')
+        draw_game_menu(screen, board)
+        all_sprites.update()
+        all_sprites.draw(screen)
+        pygame.draw.rect(screen, '#404147', (300 * SCALE_X, y, 1150 * SCALE_X, 600 * SCALE_Y))
+        pygame.draw.rect(screen, 'black', (300 * SCALE_X, y, 1150 * SCALE_X, 600 * SCALE_Y), round(5 * SCALE_X))
+        for _ in range(3):
+            text = ['На главное меню', 'Реванш', 'Анализ партии'][_]
+            pygame.draw.rect(screen, 'black', (375 * SCALE_X + 350 * SCALE_X * _, y + 400 * SCALE_Y,
+                                               300 * SCALE_X, 75 * SCALE_Y), 5)
+            text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
+            screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
+                               y + 435 * SCALE_Y - text.get_height() // 2))
+        text = pygame.font.Font(None, round(70 * SCALE_Y)).render(('Черные' if winner == WHITE else 'Белые') +
+                                                                  ' сдались. ' + 'Победа ' + ('белых.' if winner == WHITE
+                                                                               else 'чёрных.'), True, 'white')
+        screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
+        pygame.display.flip()
 
 
 class Board(pygame.sprite.Sprite):
@@ -480,9 +525,6 @@ class Board(pygame.sprite.Sprite):
                     checkmate(self.color, self)
                     return True
             draw_possible_moves(board, row, col)
-
-    def surrender(self):
-        pass
 
 
 class Rook(pygame.sprite.Sprite):
@@ -792,12 +834,21 @@ def game():
                             board.color == board.field[y][x].get_color()):
                         figure.play()
                         board.move_piece(x, y)
-                elif 150 * SCALE_X <= x <= 675 * SCALE_X and 750 * SCALE_Y <= y <= 825 * SCALE_Y:
-                    click.play()
-                    board.surrender()
                 elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
                     click.play()
                     return
+                elif 150 * SCALE_X <= x <= 675 * SCALE_X and 750 * SCALE_Y <= y <= 875 * SCALE_Y:
+                    gameover.play()
+                    choice = surrender(opponent(board.color))
+                    if choice == 1:
+                        click.play()
+                        return
+                    elif choice == 2:
+                        click.play()
+                        all_sprites.empty()
+                        all_pieces.empty()
+                        board = Board()
+                        check_alarm = False
         screen.fill('#404147')
         draw_game_menu(screen, board)
         all_sprites.update()
