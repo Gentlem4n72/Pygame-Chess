@@ -462,6 +462,16 @@ class Board(pygame.sprite.Sprite):
                     self.field[row1][col1] = piece  # Поставить на новое место.
                     piece.rect.x, piece.rect.y = get_pixels((col1, row1))
                     self.color = opponent(self.color)
+                    if piece.char() == 'P':
+                        if piece.pass_eating[0]:
+                            all_sprites.remove(
+                                board.field[
+                                    piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
+                                    piece.pass_eating[2]])
+                            board.field[
+                                piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
+                                piece.pass_eating[2]] = None
+                            piece.pass_eating = [False, 0, 0]
                     if piece.char() == 'K':
                         piece.turn += 1
                     check(self)
@@ -519,6 +529,7 @@ class Pawn(pygame.sprite.Sprite):
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
+        self.pass_eating = [False, 0, 0, None]
         self.color = color
         if self.color == WHITE:
             self.image = pygame.transform.scale(load_image('Wpawn.png'), (cell_size, cell_size))
@@ -534,6 +545,9 @@ class Pawn(pygame.sprite.Sprite):
         return 'P'
 
     def can_move(self, board, row, col, row1, col1):
+        if self.pass_eating[0] and self.pass_eating[1] == row1 and self.pass_eating[2] == col1:
+            return True
+
         if col != col1:
             return False
 
@@ -547,6 +561,9 @@ class Pawn(pygame.sprite.Sprite):
         if row + direction == row1 and board.field[row1][col] is None:
             return True
 
+        if abs(row1 - row) == 2:
+            self.taking_on_the_pass(board, row1, col1, row)
+
         if (row == start_row
                 and row + 2 * direction == row1
                 and board.field[row + direction][col] is None
@@ -556,8 +573,6 @@ class Pawn(pygame.sprite.Sprite):
         return False
 
     def can_attack(self, board, row, col, row1, col1):
-        if abs(row1 - row) == 2 and (row == 6 or row == 1) and abs(col1 - col) == 1:
-            return self.taking_on_the_pass(board, row1, col1)
 
         if row1 == row and col1 == col:
             return False
@@ -570,16 +585,21 @@ class Pawn(pygame.sprite.Sprite):
                         and (col + 1 == col1 or col - 1 == col1))
         return False
 
-    def taking_on_the_pass(self, board, row1, col1):
-        possible_figure1 = board.field[row1][col1]
-        possible_figure2 = board.field[row1][col1]
-        if type(possible_figure1) is Pawn:
-            if possible_figure1.color == opponent(self.color):
-                return True
-        if type(possible_figure2) is Pawn:
-            if possible_figure2.color == opponent(self.color):
-                return True
-        return False
+    def taking_on_the_pass(self, board, row1, col1, row):
+        if col1 < 7:
+            figure1 = board.field[row1][col1 + 1]
+            figure2 = board.field[row1][col1 - 1]
+            if type(figure1) is Pawn:
+                if figure1.color == opponent(self.color):
+                    figure1.pass_eating = [True, row1 - 1 if row == 1 else row1 + 1, col1, self]
+            if type(figure2) is Pawn:
+                if figure2.color == opponent(self.color):
+                    figure2.pass_eating = [True, row1 - 1 if row == 1 else row1 + 1, col1, self]
+        else:
+            figure2 = board.field[row1][col1 - 1]
+            if type(figure2) is Pawn:
+                if figure2.color == opponent(self.color):
+                    figure2.pass_eating = [True, row1 - 1 if row == 1 else row1 + 1, col1, self]
 
 
 class Knight(pygame.sprite.Sprite):
