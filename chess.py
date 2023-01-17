@@ -2,6 +2,7 @@ import os
 import sys
 from challenges import challenges
 import pygame
+import tkinter, tkinter.filedialog
 
 WHITE = 1
 BLACK = 2
@@ -15,6 +16,16 @@ def load_image(name, colorkey=None):
         sys.exit()
     image = pygame.image.load(fullname)
     return image
+
+
+def get_filename():
+    top = tkinter.Tk()
+    top.withdraw()
+    file_name = tkinter.filedialog.askopenfilename(parent=top, initialdir='protocols')
+    top.destroy()
+    # if not file_name.endswith('txt'):
+    #     return ''
+    return file_name
 
 
 def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
@@ -450,10 +461,12 @@ class Board(pygame.sprite.Sprite):
         else:
             return None
 
-    def move_piece(self, col, row):
+    def move_piece(self, col, row, protocol=None):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    if protocol is not None:
+                        protocol.close()
                     sys.exit()
                 if (event.type == pygame.MOUSEBUTTONDOWN and
                         (self.indent_h <= event.pos[0] <= self.indent_h + BOARD_SIZE and
@@ -503,7 +516,11 @@ class Board(pygame.sprite.Sprite):
                         else:
                             return False
                     figure.play()
+
                     self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
+                    if protocol is not None:
+                        protocol.write(f'{col} {row} {col1} {row1}\n')
+
                     self.field[row][col] = None  # Снять фигуру.
                     self.field[row1][col1] = piece  # Поставить на новое место.
                     piece.rect.x, piece.rect.y = get_pixels((col1, row1))
@@ -821,6 +838,8 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 def game():
     global board, check_alarm, all_sprites, all_pieces
+    protocol = open('protocols/example.txt', mode='w+')  # нужно еще придумать генерацию новых имен файлов, но мне лень
+    # если файла нет, создаст его
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -833,7 +852,7 @@ def game():
                     if (not (board.field[y][x] is None) and
                             board.color == board.field[y][x].get_color()):
                         figure.play()
-                        board.move_piece(x, y)
+                        board.move_piece(x, y, protocol)
                 elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
                     click.play()
                     return
@@ -875,9 +894,13 @@ def analysis():
     arrows = []
     borders = []
     circles = []
+    filename = ''
+    protocol = None
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                if protocol is not None:
+                    protocol.close()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
@@ -913,6 +936,8 @@ def analysis():
                             circles.remove((x, y))
                 elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
                     click.play()
+                    if protocol is not None:
+                        protocol.close()
                     return
 
         screen.fill('#404147')
@@ -936,6 +961,8 @@ def analysis():
             choice = draw_win_screen(winner)
             if choice == 1:
                 click.play()
+                if protocol is not None:
+                    protocol.close()
                 return
             elif choice == 2:
                 click.play()
@@ -944,6 +971,12 @@ def analysis():
                 board = Board()
                 check_alarm = False
         pygame.display.flip()
+
+        if not filename:
+            filename = get_filename()
+            print(filename)
+        else:
+            protocol = open(filename, mode='r')
 
 
 if __name__ == "__main__":
