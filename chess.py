@@ -29,6 +29,29 @@ def get_filename():
     return file_name
 
 
+def taking_on_the_pass(piece, board):
+    if get_cell((piece.rect.x, piece.rect.y))[0] < 7:
+        figure1 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] + 1]
+        figure2 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] - 1]
+        if type(piece) is Pawn:
+            if type(figure1) is Pawn and figure1.color != piece.color:
+                figure1.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure1.color == WHITE else
+                                  get_cell((piece.rect.x, piece.rect.y))[1] + 1,
+                                  get_cell((piece.rect.x, piece.rect.y))[0])
+        if type(piece) is Pawn:
+            if type(figure2) is Pawn and figure2.color != piece.color:
+                figure2.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure2.color == WHITE else
+                                  get_cell((piece.rect.x, piece.rect.y))[1] + 1,
+                                  get_cell((piece.rect.x, piece.rect.y))[0])
+    else:
+        figure2 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] - 1]
+        if type(piece) is Pawn:
+            if type(figure2) is Pawn and figure2.color != piece.color:
+                figure2.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure2.color == WHITE else
+                                  get_cell((piece.rect.x, piece.rect.y))[1] + 1,
+                                  get_cell((piece.rect.x, piece.rect.y))[0])
+
+
 def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
     if step == -1:
         col -= 1
@@ -499,91 +522,25 @@ class Board(pygame.sprite.Sprite):
                             if not piece.can_move(self, row, col, row1, col1):
                                 return False
                         else:
-                            if piece.can_attack(self, row, col, row1, col1) and self.field[row1][col1].color != piece.color:
-                                pygame.sprite.spritecollide(self.field[row1][col1], all_pieces, True)
-                                self.field[row1][col1] = None
-                            elif (row == row1 and
-                                  self.field[row1][col1].char() == 'R' and
-                                  self.field[row][col].char() == 'K' and
-                                  self.field[row][col].turn == 0 and
-                                  self.field[row1][col1].turn == 0):
-                                step = -1 if col >= col1 else 1
-                                if castling(self.field, row, col, col1, step):
-                                    rook = self.field[row1][col1]
-                                    if step == -1:
-                                        self.field[row][col] = None
-                                        self.field[row][col - 2] = piece
-                                        self.field[row1][col1] = None
-                                        self.field[row1][col1 + 3] = rook
-                                        piece.rect.x, piece.rect.y = get_pixels((col - 2, row))
-                                        rook.rect.x, piece.rect.y = get_pixels((col1 + 3, row1))
-                                    elif step == 1:
-                                        self.field[row][col] = None
-                                        self.field[row][col + 2] = piece
-                                        self.field[row1][col1] = None
-                                        self.field[row1][col1 - 2] = rook
-                                        piece.rect.x, piece.rect.y = get_pixels((col + 2, row))
-                                        rook.rect.x, piece.rect.y = get_pixels((col1 - 2, row1))
-                                    figure.play()
-                                    self.color = opponent(self.color)
-                                    piece.turn += 1
-                                    check(self)
-                                    return True
-                                else:
-                                    return False
-                            else:
-                                return False
-                        figure.play()
-
-                        self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
-                        if protocol is not None:
-                            protocol.write(f'{col} {row} {col1} {row1}\n')
-
-                        self.field[row][col] = None  # Снять фигуру.
-                        self.field[row1][col1] = piece  # Поставить на новое место.
-                        piece.rect.x, piece.rect.y = get_pixels((col1, row1))
-                        self.color = opponent(self.color)
-                        if piece.char() == 'P':
-                            if piece.pass_eating[0]:
-                                all_sprites.remove(
-                                    board.field[
-                                        piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
-                                        piece.pass_eating[2]])
-                                board.field[
-                                    piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
-                                    piece.pass_eating[2]] = None
-                                piece.pass_eating = [False, 0, 0]
-                        if piece.char() == 'K' or piece.char() == 'R':
-                            piece.turn += 1
-                        check(self)
-                        pawn_conversion(board)
-                        checkmate(self.color, self)
-                        return True
-                draw_possible_moves(board, row, col)
-        else:
-            self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
-            piece = self.field[row][col]
-            self.field[row][col] = None  # Снять фигуру.
-            self.field[row1][col1] = piece  # Поставить на новое место.
-            piece.rect.x, piece.rect.y = get_pixels((col1, row1))
-            self.color = opponent(self.color)
-            if piece.char() == 'P':
-                if piece.pass_eating[0]:
-                    all_sprites.remove(
-                        board.field[
-                            piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
-                            piece.pass_eating[2]])
-                    board.field[
-                        piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
-                        piece.pass_eating[2]] = None
-                    piece.pass_eating = [False, 0, 0]
-            if piece.char() == 'K' or piece.char() == 'R':
-                piece.turn += 1
-            check(self)
-            pawn_conversion(board)
-            checkmate(self.color, self)
-            return True
-
+                            return False
+                    figure.play()
+                    self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
+                    self.field[row][col] = None  # Снять фигуру.
+                    self.field[row1][col1] = piece
+                    piece.rect.x, piece.rect.y = get_pixels((col1, row1))
+                    if type(piece) is Pawn and piece.taking:
+                        piece.taking = (None, None)
+                    if abs(row1 - row) == 2:
+                        taking_on_the_pass(piece, board)
+                    self.color = opponent(self.color)
+                    if piece.char() == 'K' or piece.char() == 'R':
+                        piece.turn += 1
+                    check(self)
+                    pawn_conversion(board)
+                    checkmate(self.color, self)
+                    return True
+            draw_possible_moves(board, row, col)
+        
 
 class Rook(pygame.sprite.Sprite):
     def __init__(self, color, x, y):
@@ -631,7 +588,7 @@ class Pawn(pygame.sprite.Sprite):
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
-        self.pass_eating = [False, 0, 0, None]
+        self.taking = (None, None)
         self.color = color
         if self.color == WHITE:
             self.image = pygame.transform.scale(load_image('Wpawn.png'), (cell_size, cell_size))
@@ -647,7 +604,7 @@ class Pawn(pygame.sprite.Sprite):
         return 'P'
 
     def can_move(self, board, row, col, row1, col1):
-        if self.pass_eating[0] and self.pass_eating[1] == row1 and self.pass_eating[2] == col1:
+        if row1 == self.taking[0] and col1 == self.taking[1]:
             return True
 
         if col != col1:
