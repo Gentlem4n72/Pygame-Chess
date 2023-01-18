@@ -212,9 +212,10 @@ def draw_game_menu(screen, board, analysis=False, challenges=False):
     pygame.draw.rect(screen, 'black', (INDENT, 100 * SCALE_Y, 775 * SCALE_X, 615 * SCALE_Y), round(5 * SCALE_X))
     pygame.draw.rect(screen, 'black', (INDENT, 100 * SCALE_Y, 775 * SCALE_X, 115 * SCALE_Y), round(5 * SCALE_X))
     color = board.color
-    for i in range(len(board.protocol) if len(board.protocol) < 5 else 5):
+    num = len(board.protocol) if len(board.protocol) < 5 else 5
+    for i in range(num):
         color = opponent(color)
-        if i == 0:
+        if i == num - 1:
             pygame.draw.rect(screen, '#61626b', (INDENT, 210 * SCALE_Y + 100 * SCALE_Y * i,
                                                  775 * SCALE_X, 105 * SCALE_Y))
         pygame.draw.rect(screen, 'black', (INDENT, 210 * SCALE_Y + 100 * SCALE_Y * i,
@@ -478,7 +479,7 @@ class Board(pygame.sprite.Sprite):
             return None
 
     def move_piece(self, col, row, row1=None, col1=None, protocol=None):
-        if not (row1 and col1):
+        if row1 is None and col1 is None:
             while True:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -980,6 +981,7 @@ def analysis():
                     if current_turn != -1:
                         col1, row1, col, row = turns[current_turn]
                         board.move_piece(col, row, row1=row1, col1=col1)
+                        figure.play()
                         del board.protocol[-1]
                         del board.protocol[-1]
                         current_turn -= 1
@@ -993,6 +995,7 @@ def analysis():
                         current_turn += 1
                         col, row, col1, row1 = turns[current_turn]
                         board.move_piece(col, row, row1=row1, col1=col1)
+                        figure.play()
                         circles = []
                         arrows = []
                         arrow = []
