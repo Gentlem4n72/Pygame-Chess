@@ -214,12 +214,15 @@ def draw_game_menu(screen, board, analysis=False, challenges=False):
     color = board.color
     for i in range(len(board.protocol) if len(board.protocol) < 5 else 5):
         color = opponent(color)
+        if i == 0:
+            pygame.draw.rect(screen, '#61626b', (INDENT, 210 * SCALE_Y + 100 * SCALE_Y * i,
+                                                 775 * SCALE_X, 105 * SCALE_Y))
+        pygame.draw.rect(screen, 'black', (INDENT, 210 * SCALE_Y + 100 * SCALE_Y * i,
+                                           775 * SCALE_X, 105 * SCALE_Y), round(5 * SCALE_X))
         text = ' -> '.join(board.protocol[-5:][i])
         text = pygame.font.Font(None, 50).render(text, True, 'white')
         screen.blit(text, (425 * SCALE_X - text.get_width() // 2,
                            215 * SCALE_Y + 100 * SCALE_Y * i + 52 * SCALE_Y - text.get_height() // 2))
-        pygame.draw.rect(screen, 'black', (INDENT, 210 * SCALE_Y + 100 * SCALE_Y * i,
-                                           775 * SCALE_X, 105 * SCALE_Y), round(5 * SCALE_X))
 
     pygame.draw.rect(screen, 'black', (INDENT, INDENT, 300 * SCALE_X, 60 * SCALE_Y), round(5 * SCALE_X))
     return_text = pygame.font.Font(None, round(40 * SCALE_X)).render('<- На главное меню', True, 'white')
@@ -977,6 +980,8 @@ def analysis():
                     if current_turn != -1:
                         col1, row1, col, row = turns[current_turn]
                         board.move_piece(col, row, row1=row1, col1=col1)
+                        del board.protocol[-1]
+                        del board.protocol[-1]
                         current_turn -= 1
                         circles = []
                         arrows = []
