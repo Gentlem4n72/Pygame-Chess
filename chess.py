@@ -232,6 +232,18 @@ def draw_game_menu(screen, board, analysis=False, challenges=False):
         surr_text = pygame.font.Font(None, round(50 * SCALE_X)).render('Сдаться', True, 'white')
         screen.blit(surr_text, (413 * SCALE_X - surr_text.get_width() // 2,
                                 813 * SCALE_Y - surr_text.get_height() // 2))
+    else:
+        pygame.draw.rect(screen, 'black', (180 * SCALE_X, 775 * SCALE_Y, 150 * SCALE_X, 60 * SCALE_Y),
+                         round(5 * SCALE_X))
+        pygame.draw.rect(screen, 'black', (450 * SCALE_X, 775 * SCALE_Y, 150 * SCALE_X, 60 * SCALE_Y),
+                         round(5 * SCALE_Y))
+        pygame.draw.lines(screen, 'black', True, ((100 * SCALE_X, 805 * SCALE_Y), (180 * SCALE_X, 750 * SCALE_Y),
+                                                  (180 * SCALE_X, 855 * SCALE_Y)),
+                          round(5 * SCALE_X))
+        pygame.draw.rect(screen, '#404147', (175 * SCALE_X, 780 * SCALE_Y, 30 * SCALE_X, 50 * SCALE_Y))
+        pygame.draw.lines(screen, 'black', True, ((680 * SCALE_X, 805 * SCALE_Y), (599 * SCALE_X, 750 * SCALE_Y),
+                                                  (599 * SCALE_X, 855 * SCALE_Y)), round(5 * SCALE_X))
+        pygame.draw.rect(screen, '#404147', (595 * SCALE_X, 780 * SCALE_Y, 30 * SCALE_X, 50 * SCALE_Y))
 
     turn = pygame.font.Font(None, round(50 * SCALE_X)).render('Ход ' + ('белых' if board.color == WHITE else 'чёрных'),
                                                               True, 'white')
@@ -462,87 +474,111 @@ class Board(pygame.sprite.Sprite):
         else:
             return None
 
-    def move_piece(self, col, row, protocol=None):
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    if protocol is not None:
-                        protocol.close()
-                    sys.exit()
-                if (event.type == pygame.MOUSEBUTTONDOWN and
-                        (self.indent_h <= event.pos[0] <= self.indent_h + BOARD_SIZE and
-                         self.indent_v <= event.pos[1] <= self.indent_v + BOARD_SIZE)):
-                    col1, row1 = get_cell(event.pos)
-                    if not correct_coords(row, col) or not correct_coords(row1, col1):
-                        return False
-                    if (col, row) == (col1, row1):
-                        return False
-                    piece = self.field[row][col]
-                    if self.field[row1][col1] is None:
-                        if not piece.can_move(self, row, col, row1, col1):
+    def move_piece(self, col, row, row1=None, col1=None, protocol=None):
+        if not (row1 and col1):
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        if protocol is not None:
+                            protocol.close()
+                        sys.exit()
+                    if (event.type == pygame.MOUSEBUTTONDOWN and
+                            (self.indent_h <= event.pos[0] <= self.indent_h + BOARD_SIZE and
+                             self.indent_v <= event.pos[1] <= self.indent_v + BOARD_SIZE)):
+                        col1, row1 = get_cell(event.pos)
+                        if not correct_coords(row, col) or not correct_coords(row1, col1):
                             return False
-                    else:
-                        if piece.can_attack(self, row, col, row1, col1) and self.field[row1][col1].color != piece.color:
-                            pygame.sprite.spritecollide(self.field[row1][col1], all_pieces, True)
-                            self.field[row1][col1] = None
-                        elif (row == row1 and
-                              self.field[row1][col1].char() == 'R' and
-                              self.field[row][col].char() == 'K' and
-                              self.field[row][col].turn == 0 and
-                              self.field[row1][col1].turn == 0):
-                            step = -1 if col >= col1 else 1
-                            if castling(self.field, row, col, col1, step):
-                                rook = self.field[row1][col1]
-                                if step == -1:
-                                    self.field[row][col] = None
-                                    self.field[row][col - 2] = piece
-                                    self.field[row1][col1] = None
-                                    self.field[row1][col1 + 3] = rook
-                                    piece.rect.x, piece.rect.y = get_pixels((col - 2, row))
-                                    rook.rect.x, piece.rect.y = get_pixels((col1 + 3, row1))
-                                elif step == 1:
-                                    self.field[row][col] = None
-                                    self.field[row][col + 2] = piece
-                                    self.field[row1][col1] = None
-                                    self.field[row1][col1 - 2] = rook
-                                    piece.rect.x, piece.rect.y = get_pixels((col + 2, row))
-                                    rook.rect.x, piece.rect.y = get_pixels((col1 - 2, row1))
-                                figure.play()
-                                self.color = opponent(self.color)
-                                piece.turn += 1
-                                check(self)
-                                return True
-                            else:
+                        if (col, row) == (col1, row1):
+                            return False
+                        piece = self.field[row][col]
+                        if self.field[row1][col1] is None:
+                            if not piece.can_move(self, row, col, row1, col1):
                                 return False
                         else:
-                            return False
-                    figure.play()
+                            if piece.can_attack(self, row, col, row1, col1) and self.field[row1][col1].color != piece.color:
+                                pygame.sprite.spritecollide(self.field[row1][col1], all_pieces, True)
+                                self.field[row1][col1] = None
+                            elif (row == row1 and
+                                  self.field[row1][col1].char() == 'R' and
+                                  self.field[row][col].char() == 'K' and
+                                  self.field[row][col].turn == 0 and
+                                  self.field[row1][col1].turn == 0):
+                                step = -1 if col >= col1 else 1
+                                if castling(self.field, row, col, col1, step):
+                                    rook = self.field[row1][col1]
+                                    if step == -1:
+                                        self.field[row][col] = None
+                                        self.field[row][col - 2] = piece
+                                        self.field[row1][col1] = None
+                                        self.field[row1][col1 + 3] = rook
+                                        piece.rect.x, piece.rect.y = get_pixels((col - 2, row))
+                                        rook.rect.x, piece.rect.y = get_pixels((col1 + 3, row1))
+                                    elif step == 1:
+                                        self.field[row][col] = None
+                                        self.field[row][col + 2] = piece
+                                        self.field[row1][col1] = None
+                                        self.field[row1][col1 - 2] = rook
+                                        piece.rect.x, piece.rect.y = get_pixels((col + 2, row))
+                                        rook.rect.x, piece.rect.y = get_pixels((col1 - 2, row1))
+                                    figure.play()
+                                    self.color = opponent(self.color)
+                                    piece.turn += 1
+                                    check(self)
+                                    return True
+                                else:
+                                    return False
+                            else:
+                                return False
+                        figure.play()
 
-                    self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
-                    if protocol is not None:
-                        protocol.write(f'{col} {row} {col1} {row1}\n')
+                        self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
+                        if protocol is not None:
+                            protocol.write(f'{col} {row} {col1} {row1}\n')
 
-                    self.field[row][col] = None  # Снять фигуру.
-                    self.field[row1][col1] = piece  # Поставить на новое место.
-                    piece.rect.x, piece.rect.y = get_pixels((col1, row1))
-                    self.color = opponent(self.color)
-                    if piece.char() == 'P':
-                        if piece.pass_eating[0]:
-                            all_sprites.remove(
+                        self.field[row][col] = None  # Снять фигуру.
+                        self.field[row1][col1] = piece  # Поставить на новое место.
+                        piece.rect.x, piece.rect.y = get_pixels((col1, row1))
+                        self.color = opponent(self.color)
+                        if piece.char() == 'P':
+                            if piece.pass_eating[0]:
+                                all_sprites.remove(
+                                    board.field[
+                                        piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
+                                        piece.pass_eating[2]])
                                 board.field[
                                     piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
-                                    piece.pass_eating[2]])
-                            board.field[
-                                piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
-                                piece.pass_eating[2]] = None
-                            piece.pass_eating = [False, 0, 0]
-                    if piece.char() == 'K' or piece.char() == 'R':
-                        piece.turn += 1
-                    check(self)
-                    pawn_conversion(board)
-                    checkmate(self.color, self)
-                    return True
-            draw_possible_moves(board, row, col)
+                                    piece.pass_eating[2]] = None
+                                piece.pass_eating = [False, 0, 0]
+                        if piece.char() == 'K' or piece.char() == 'R':
+                            piece.turn += 1
+                        check(self)
+                        pawn_conversion(board)
+                        checkmate(self.color, self)
+                        return True
+                draw_possible_moves(board, row, col)
+        else:
+            self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
+            piece = self.field[row][col]
+            self.field[row][col] = None  # Снять фигуру.
+            self.field[row1][col1] = piece  # Поставить на новое место.
+            piece.rect.x, piece.rect.y = get_pixels((col1, row1))
+            self.color = opponent(self.color)
+            if piece.char() == 'P':
+                if piece.pass_eating[0]:
+                    all_sprites.remove(
+                        board.field[
+                            piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
+                            piece.pass_eating[2]])
+                    board.field[
+                        piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
+                        piece.pass_eating[2]] = None
+                    piece.pass_eating = [False, 0, 0]
+            if piece.char() == 'K' or piece.char() == 'R':
+                piece.turn += 1
+            check(self)
+            pawn_conversion(board)
+            checkmate(self.color, self)
+            return True
 
 
 class Rook(pygame.sprite.Sprite):
@@ -852,7 +888,7 @@ def game():
                     if (not (board.field[y][x] is None) and
                             board.color == board.field[y][x].get_color()):
                         figure.play()
-                        board.move_piece(x, y, protocol)
+                        board.move_piece(x, y, protocol=protocol)
                 elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
                     click.play()
                     return
@@ -920,40 +956,57 @@ def analysis():
                             borders += [get_pixels((x, y))]
 
                     if event.button == 1:  # лкм
-                        circles = []
-                        arrows = []
-                        arrow = []
-                        borders = []
-                        if (not (board.field[y][x] is None) and
-                                board.color == board.field[y][x].get_color()):
-                            figure.play()
-                            board.move_piece(x, y)
-
-                    if event.button == 2:  # колесико мышки
                         if (x, y) not in circles:
                             circles.append((x, y))
                         else:
                             circles.remove((x, y))
+
+                    if event.button == 2:  # колёсико мыши
+                        circles = []
+                        arrows = []
+                        arrow = []
+                        borders = []
+
                 elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
                     click.play()
                     if protocol is not None:
                         protocol.close()
                     return
+                elif ((100 * SCALE_X <= x <= 180 * SCALE_X and 750 * SCALE_Y <= y <= 855 * SCALE_Y) or
+                      (100 * SCALE_X <= x <= 330 * SCALE_X and 775 * SCALE_X <= y <= 835 * SCALE_Y)):
+                    if current_turn != -1:
+                        col1, row1, col, row = turns[current_turn]
+                        board.move_piece(col, row, row1=row1, col1=col1)
+                        current_turn -= 1
+                        circles = []
+                        arrows = []
+                        arrow = []
+                        borders = []
+                elif ((600 * SCALE_X <= x <= 680 and 750 * SCALE_Y <= y <= 855 * SCALE_Y) or
+                      (450 * SCALE_X <= x <= 680 and 775 * SCALE_Y <= y <= 835 * SCALE_Y)):
+                    if current_turn + 1 <= len(turns) - 1:
+                        current_turn += 1
+                        col, row, col1, row1 = turns[current_turn]
+                        board.move_piece(col, row, row1=row1, col1=col1)
+                        circles = []
+                        arrows = []
+                        arrow = []
+                        borders = []
 
         screen.fill('#404147')
         draw_game_menu(screen, board, analysis=True)
         all_sprites.update()
         all_sprites.draw(screen)
 
-        for elem in circles:
-            pygame.draw.circle(screen, 'green',
-                               tuple(map(lambda z: z + cell_size // 2, get_pixels((elem[0], elem[1])))),
-                               cell_size // 2, round(5 * SCALE_X))
         for elem in borders:
             pygame.draw.rect(screen, 'orange', (elem[0], elem[1], cell_size, cell_size), round(5 * SCALE_X))
         for elem in arrows:
             if len(elem) == 4:
                 pygame.draw.line(screen, 'orange', (elem[0], elem[1]), (elem[2], elem[3]), round(5 * SCALE_X))
+        for elem in circles:
+            pygame.draw.circle(screen, 'green',
+                               tuple(map(lambda z: z + cell_size // 2, get_pixels((elem[0], elem[1])))),
+                               cell_size // 2, round(5 * SCALE_X))
 
         winner = checkmate(board.color, board)
         if winner:
@@ -974,7 +1027,10 @@ def analysis():
 
         if not filename:
             filename = get_filename()
-            print(filename)
+            protocol = open(filename, mode='r')
+            turns = [tuple(map(int, x.rstrip().split())) for x in protocol.readlines()]
+            current_turn = -1
+
         else:
             protocol = open(filename, mode='r')
 
