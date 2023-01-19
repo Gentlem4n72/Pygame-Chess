@@ -1,6 +1,5 @@
 import os
 import sys
-from challenges import challenges
 import pygame
 import tkinter, tkinter.filedialog
 import datetime as dt
@@ -37,19 +36,22 @@ def taking_on_the_pass(piece, board):
             if type(figure1) is Pawn and figure1.color != piece.color:
                 figure1.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure1.color == WHITE else
                                   get_cell((piece.rect.x, piece.rect.y))[1] + 1,
-                                  get_cell((piece.rect.x, piece.rect.y))[0])
+                                  get_cell((piece.rect.x, piece.rect.y))[0],
+                                  piece)
         if type(piece) is Pawn:
             if type(figure2) is Pawn and figure2.color != piece.color:
                 figure2.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure2.color == WHITE else
                                   get_cell((piece.rect.x, piece.rect.y))[1] + 1,
-                                  get_cell((piece.rect.x, piece.rect.y))[0])
+                                  get_cell((piece.rect.x, piece.rect.y))[0],
+                                  piece)
     else:
         figure2 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] - 1]
         if type(piece) is Pawn:
             if type(figure2) is Pawn and figure2.color != piece.color:
                 figure2.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure2.color == WHITE else
                                   get_cell((piece.rect.x, piece.rect.y))[1] + 1,
-                                  get_cell((piece.rect.x, piece.rect.y))[0])
+                                  get_cell((piece.rect.x, piece.rect.y))[0],
+                                  piece)
 
 
 def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
@@ -473,6 +475,7 @@ class Board(pygame.sprite.Sprite):
         self.protocol = []
         self.field = []
         self.turns = []
+        self.checks = [0, 0]
         self.current_turn = -1
         self.eaten_pieces = []
         self.indent_h = WIDTH - BOARD_SIZE - INDENT * 2
@@ -583,19 +586,34 @@ class Board(pygame.sprite.Sprite):
                         self.field[row][col] = None  # Снять фигуру.
                         self.field[row1][col1] = piece  # Поставить на новое место.
                         piece.rect.x, piece.rect.y = get_pixels((col1, row1))
+                        if type(piece) is Pawn and piece.taking[0] == col1 and piece.taking[1] == row1:
+                            all_pieces.remove(piece.taking[2])
+                            all_sprites.remove(piece.taking[2])
+                            self.field[row1 - 1 if self.color == WHITE else row1 + 1][col1] = None
                         if type(piece) is Pawn and piece.taking:
-                            piece.taking = (None, None)
+                            piece.taking = (None, None, None)
+                        self.color = opponent(self.color)
                         if abs(row1 - row) == 2:
                             taking_on_the_pass(piece, board)
-                        self.color = opponent(self.color)
                         if piece.char() == 'K' or piece.char() == 'R':
                             piece.turn += 1
-                        check(self)
+                        checks = check(self)
+                        if checks[0]:
+                            self.checks[0] += 1
+                            if self.color == BLACK:
+                                self.checks[0] += 1
+                        else:
+                            self.checks[0] = 0
+                        if checks[1]:
+                            self.checks[1] += 1
+                            if self.color == WHITE:
+                                self.checks[1] += 1
+                        else:
+                            self.checks[1] = 0
                         choice = pawn_conversion(board)
                         choice = ['r', 'k', 'b', 'q'][[Rook, Knight, Bishop, Queen].index(choice)] if choice else ''
                         if protocol is not None:
                             protocol.write(f'{col} {row} {col1} {row1} {choice}\n')
-                        checkmate(self.color, self)
                         return True
                 draw_possible_moves(board, row, col)
         # Режим анализа (без проверок)
@@ -685,7 +703,7 @@ class Pawn(pygame.sprite.Sprite):
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
-        self.taking = (None, None)
+        self.taking = (None, None, None)
         self.color = color
         if self.color == WHITE:
             self.image = pygame.transform.scale(load_image('Wpawn.png'), (cell_size, cell_size))
@@ -717,9 +735,6 @@ class Pawn(pygame.sprite.Sprite):
         if row + direction == row1 and board.field[row1][col] is None:
             return True
 
-        if abs(row1 - row) == 2:
-            self.taking_on_the_pass(board, row1, col1, row)
-
         if (row == start_row
                 and row + 2 * direction == row1
                 and board.field[row + direction][col] is None
@@ -735,27 +750,8 @@ class Pawn(pygame.sprite.Sprite):
 
         direction = 1 if (self.color == BLACK) else -1
 
-        if board.field[row1][col1]:
-            if board.field[row1][col1] != self.color:
-                return (row + direction == row1
-                        and (col + 1 == col1 or col - 1 == col1))
-        return False
-
-    def taking_on_the_pass(self, board, row1, col1, row):
-        if col1 < 7:
-            figure1 = board.field[row1][col1 + 1]
-            figure2 = board.field[row1][col1 - 1]
-            if type(figure1) is Pawn:
-                if figure1.color == opponent(self.color):
-                    figure1.pass_eating = [True, row1 - 1 if row == 1 else row1 + 1, col1, self]
-            if type(figure2) is Pawn:
-                if figure2.color == opponent(self.color):
-                    figure2.pass_eating = [True, row1 - 1 if row == 1 else row1 + 1, col1, self]
-        else:
-            figure2 = board.field[row1][col1 - 1]
-            if type(figure2) is Pawn:
-                if figure2.color == opponent(self.color):
-                    figure2.pass_eating = [True, row1 - 1 if row == 1 else row1 + 1, col1, self]
+        return (row + direction == row1
+                and (col + 1 == col1 or col - 1 == col1))
 
 
 class Knight(pygame.sprite.Sprite):
@@ -817,8 +813,9 @@ class King(pygame.sprite.Sprite):
                                               get_cell((x.rect.x, x.rect.y))[0],
                                               row1,
                                               col1),
-                       filter(lambda x: x.color == opponent(self.color), all_pieces.sprites()))
+                       filter(lambda x: x.color == opponent(board.color), all_pieces.sprites()))
                    ):
+                print(opponent(self.color))
                 return False
             return True
         return False
@@ -967,6 +964,10 @@ def game():
         all_sprites.update()
         all_sprites.draw(screen)
         winner = checkmate(board.color, board)
+        if not winner and board.checks[1] > 1:
+            winner = WHITE
+        elif not winner and board.checks[0] > 1:
+            winner = BLACK
         if winner:
             gameover.play()
             choice = draw_win_screen(winner)
@@ -1083,6 +1084,65 @@ def analysis():
             protocol = open(filename, mode='r')
 
 
+def challenges():
+    global board, check_alarm, all_sprites, all_pieces
+    board.field = []
+    for row in range(8):
+        board.field.append([None] * 8)
+    for sprites in all_sprites.sprites():
+        if type(sprites) is not Board:
+            all_sprites.remove(sprites)
+    all_pieces.empty()
+    print(os.path.join('Challenges', '1.txt'))
+    with open(os.path.join('Challenges', '1.txt')) as f:
+        mimic_field = [*map(lambda x: x.split(), [*map(lambda x: x.rstrip('\n'), f.readlines())])]
+        print(mimic_field)
+        for row in range(8):
+            for col in range(8):
+                if mimic_field[row][col] == 'bK':
+                    board.field[row][col] = King(BLACK, board.indent_h + cell_size * col, board.indent_v + cell_size * row)
+                if mimic_field[row][col] == 'wK':
+                    board.field[row][col] = King(WHITE, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                if mimic_field[row][col] == 'wQ':
+                    board.field[row][col] = Queen(WHITE, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+    protocol = open(f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt', mode='w+')
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+                if (board.indent_h <= x <= board.indent_h + BOARD_SIZE and
+                        board.indent_v <= y <= board.indent_v + BOARD_SIZE):
+                    x, y = get_cell((x, y))
+                    if (not (board.field[y][x] is None) and
+                            board.color == board.field[y][x].get_color()):
+                        figure.play()
+                        board.move_piece(x, y, protocol=protocol)
+                elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
+                    click.play()
+                    return
+                elif 150 * SCALE_X <= x <= 675 * SCALE_X and 750 * SCALE_Y <= y <= 875 * SCALE_Y:
+                    gameover.play()
+                    choice = surrender(opponent(board.color))
+                    if choice == 1:
+                        click.play()
+                        return
+                    elif choice == 2:
+                        click.play()
+                        all_sprites.empty()
+                        all_pieces.empty()
+                        board = Board()
+                        check_alarm = False
+        screen.fill('#404147')
+        draw_game_menu(screen, board)
+        all_sprites.update()
+        all_sprites.draw(screen)
+        pygame.display.flip()
+
+
 if __name__ == "__main__":
     running = True
     pygame.mixer.pre_init(44100, -16, 1, 512)
@@ -1152,7 +1212,11 @@ if __name__ == "__main__":
 
                 pygame.display.quit()
                 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-                challenges(screen)
+                pygame.display.set_caption('Испытания')
+                all_sprites = pygame.sprite.Group()
+                all_pieces = pygame.sprite.Group()
+                board = Board()
+                challenges()
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
                 pygame.display.set_caption('Главное меню')
