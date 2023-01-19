@@ -456,6 +456,9 @@ class Board(pygame.sprite.Sprite):
         self.color = WHITE
         self.protocol = []
         self.field = []
+        self.turns = []
+        self.current_turn = -1
+        self.eaten_pieces = []
         self.indent_h = WIDTH - BOARD_SIZE - INDENT * 2
         self.indent_v = HEIGHT - BOARD_SIZE - INDENT * 2
         for row in range(8):
@@ -578,26 +581,31 @@ class Board(pygame.sprite.Sprite):
                         return True
                 draw_possible_moves(board, row, col)
         else:
+            flag = False
+            if self.field[row1][col1]:
+                piece = self.field[row1][col1]
+                pygame.sprite.spritecollide(piece, all_pieces, True)
+                self.eaten_pieces.append((piece.__class__, piece.color, piece.rect.x, piece.rect.y))
+                self.field[row1][col1] = None
+                flag = True
             self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
             piece = self.field[row][col]
             self.field[row][col] = None  # Снять фигуру.
             self.field[row1][col1] = piece  # Поставить на новое место.
+            if board.turns[board.current_turn][-1]:
+                new_piece = self.eaten_pieces.pop()
+                self.field[row][col] = new_piece[0](new_piece[1], new_piece[2], new_piece[3])
+            if flag:
+                self.turns[self.current_turn] = (*self.turns[self.current_turn][:-1], True)
             piece.rect.x, piece.rect.y = get_pixels((col1, row1))
             self.color = opponent(self.color)
-            if piece.char() == 'P':
-                if piece.pass_eating[0]:
-                    all_sprites.remove(
-                        board.field[
-                            piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
-                            piece.pass_eating[2]])
-                    board.field[
-                        piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
-                        piece.pass_eating[2]] = None
-                    piece.pass_eating = [False, 0, 0]
+            if type(piece) is Pawn and piece.taking:
+                piece.taking = (None, None)
+            if abs(row1 - row) == 2:
+                taking_on_the_pass(piece, board)
             if piece.char() == 'K' or piece.char() == 'R':
                 piece.turn += 1
             check(self)
-            pawn_conversion(board)
             checkmate(self.color, self)
             return True
 
@@ -995,22 +1003,22 @@ def analysis():
                     return
                 elif ((100 * SCALE_X <= x <= 180 * SCALE_X and 750 * SCALE_Y <= y <= 855 * SCALE_Y) or
                       (100 * SCALE_X <= x <= 330 * SCALE_X and 775 * SCALE_X <= y <= 835 * SCALE_Y)):
-                    if current_turn != -1:
-                        col1, row1, col, row = turns[current_turn]
+                    if board.current_turn != -1:
+                        col1, row1, col, row = board.turns[board.current_turn][:-1]
                         board.move_piece(col, row, row1=row1, col1=col1)
                         figure.play()
                         del board.protocol[-1]
                         del board.protocol[-1]
-                        current_turn -= 1
+                        board.current_turn -= 1
                         circles = []
                         arrows = []
                         arrow = []
                         borders = []
                 elif ((600 * SCALE_X <= x <= 680 and 750 * SCALE_Y <= y <= 855 * SCALE_Y) or
                       (450 * SCALE_X <= x <= 680 and 775 * SCALE_Y <= y <= 835 * SCALE_Y)):
-                    if current_turn + 1 <= len(turns) - 1:
-                        current_turn += 1
-                        col, row, col1, row1 = turns[current_turn]
+                    if board.current_turn + 1 <= len(board.turns) - 1:
+                        board.current_turn += 1
+                        col, row, col1, row1 = board.turns[board.current_turn][:-1]
                         board.move_piece(col, row, row1=row1, col1=col1)
                         figure.play()
                         circles = []
@@ -1032,29 +1040,12 @@ def analysis():
             pygame.draw.circle(screen, 'green',
                                tuple(map(lambda z: z + cell_size // 2, get_pixels((elem[0], elem[1])))),
                                cell_size // 2, round(5 * SCALE_X))
-
-        winner = checkmate(board.color, board)
-        if winner:
-            gameover.play()
-            choice = draw_win_screen(winner)
-            if choice == 1:
-                click.play()
-                if protocol is not None:
-                    protocol.close()
-                return
-            elif choice == 2:
-                click.play()
-                all_sprites.empty()
-                all_pieces.empty()
-                board = Board()
-                check_alarm = False
         pygame.display.flip()
 
         if not filename:
             filename = get_filename()
             protocol = open(filename, mode='r')
-            turns = [tuple(map(int, x.rstrip().split())) for x in protocol.readlines()]
-            current_turn = -1
+            board.turns = [tuple([*map(int, x.rstrip().split()), False]) for x in protocol.readlines()]
 
         else:
             protocol = open(filename, mode='r')
