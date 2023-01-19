@@ -456,6 +456,7 @@ class Board(pygame.sprite.Sprite):
         self.color = WHITE
         self.protocol = []
         self.field = []
+        self.checks = [0, 0]
         self.indent_h = WIDTH - BOARD_SIZE - INDENT * 2
         self.indent_v = HEIGHT - BOARD_SIZE - INDENT * 2
         for row in range(8):
@@ -572,9 +573,17 @@ class Board(pygame.sprite.Sprite):
                         self.color = opponent(self.color)
                         if piece.char() == 'K' or piece.char() == 'R':
                             piece.turn += 1
-                        check(self)
+                        checks = check(self)
+                        if checks[0]:
+                            self.checks[0] += 1
+                        else:
+                            self.checks[0] = 0
+                        if checks[1]:
+                            self.checks[1] += 1
+                        else:
+                            self.checks[1] = 0
+                        print(self.checks)
                         pawn_conversion(board)
-                        checkmate(self.color, self)
                         return True
                 draw_possible_moves(board, row, col)
         else:
@@ -930,6 +939,10 @@ def game():
         all_sprites.update()
         all_sprites.draw(screen)
         winner = checkmate(board.color, board)
+        if board.checks[1] > 1:
+            winner = WHITE
+        elif board.checks[0] > 1:
+            winner = BLACK
         if winner:
             gameover.play()
             choice = draw_win_screen(winner)
