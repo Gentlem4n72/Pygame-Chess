@@ -16,8 +16,45 @@
 - [Официальный сайт](https://chessday.ru/ "Официальный сайт")
 - ![Картинка](https://sun9-51.userapi.com/s/v1/if1/xwDW1NJjXN2-azqGC5EK6pJOmJj-cqj1jUARFoD2F765VtiU7shvQMpIpS2RmaCfr2Ncstjs.jpg?size=490x490&quality=96&crop=0,0,490,490&ava=1 "Подсказка")
 
+## Системные требования
+
+**Минимальные системные требования**:
+- ОС: Windows 7/8/10/11
+- Оперативная память: 2 GB
+- Свободное место на диске: 1 GB
+
+**Рекомендуемые системные требования**:
+- ОС: Windows 8/10/11
+- Оперативная память: 2 GB
+- Свободное место на диске: 1 GB
+
+**Технологические стек**:
+- Язык программирования: Python
+- Используемые билиотеки/модули: pygame, tkinter
+
+## Порядок запуска приложения
+
+Чтобы запустить нашу программу, необходимо в консоли выполнить команду:
+```cmd
+pip install -r requirements.txt
+```
+Затем запустить файл chess.py.
+
+## Что еще можно доделать
+
+Поворот игрового поля для удобства пользователей.
+
+## Ресурсы
+
+### Звуки:
+- [Звуковые эффекты](https://freesound.org/)
+
+### Изображения:
+- [Шахматные фигуры](https://www.pngmart.com/ru/image/260374)
+
+
 ## Авторы проекта
 
-### [Александр Десятовский](https://github.com/Gentlem4n72 "Gentlem4n72")
-### [Александра Дермелева](https://github.com/al3ksandraa "al3ksandraa")
-### [Артем Ясков](https://github.com/ScaryOrange "ScaryOrange")
+### [Александр Десятовский (aka Gentlem4n72)](https://github.com/Gentlem4n72 "Gentlem4n72")
+### [Александра Дермелева (aka al3ksandraa)](https://github.com/al3ksandraa "al3ksandraa")
+### [Артем Ясков (aka ScaryOrange)](https://github.com/ScaryOrange "ScaryOrange")
