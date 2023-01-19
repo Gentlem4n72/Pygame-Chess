@@ -30,26 +30,27 @@ def get_filename():
 
 
 def taking_on_the_pass(piece, board):
-    if get_cell((piece.rect.x, piece.rect.y))[0] < 7:
-        figure1 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] + 1]
-        figure2 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] - 1]
-        if type(piece) is Pawn:
+    if type(piece) is Pawn:
+        if get_cell((piece.rect.x, piece.rect.y))[0] < 7:
+            figure1 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] + 1]
+            figure2 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] - 1]
             if type(figure1) is Pawn and figure1.color != piece.color:
                 figure1.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure1.color == WHITE else
                                   get_cell((piece.rect.x, piece.rect.y))[1] + 1,
-                                  get_cell((piece.rect.x, piece.rect.y))[0])
-        if type(piece) is Pawn:
+                                  get_cell((piece.rect.x, piece.rect.y))[0],
+                                  get_cell((piece.rect.x, piece.rect.y)))
             if type(figure2) is Pawn and figure2.color != piece.color:
                 figure2.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure2.color == WHITE else
                                   get_cell((piece.rect.x, piece.rect.y))[1] + 1,
-                                  get_cell((piece.rect.x, piece.rect.y))[0])
-    else:
-        figure2 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] - 1]
-        if type(piece) is Pawn:
+                                  get_cell((piece.rect.x, piece.rect.y))[0],
+                                  get_cell((piece.rect.x, piece.rect.y)))
+        else:
+            figure2 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] - 1]
             if type(figure2) is Pawn and figure2.color != piece.color:
                 figure2.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure2.color == WHITE else
                                   get_cell((piece.rect.x, piece.rect.y))[1] + 1,
-                                  get_cell((piece.rect.x, piece.rect.y))[0])
+                                  get_cell((piece.rect.x, piece.rect.y))[0],
+                                  get_cell((piece.rect.x, piece.rect.y)))
 
 
 def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
@@ -178,18 +179,6 @@ def checkmate(color, board):
         return opponent(color)
     if not any(king_moves) and check_figures:
         return opponent(color)
-
-
-def win_check(board):
-    kings = []
-    for row in board.field:
-        for piece in row:
-            if isinstance(piece, King):
-                kings.append(piece)
-    if len(kings) == 1:
-        return kings[0].color
-    else:
-        return False
 
 
 def opponent(color):
@@ -566,8 +555,12 @@ class Board(pygame.sprite.Sprite):
                         self.field[row][col] = None  # Снять фигуру.
                         self.field[row1][col1] = piece  # Поставить на новое место.
                         piece.rect.x, piece.rect.y = get_pixels((col1, row1))
+                        if type(piece) is Pawn and piece.taking[0] == col1 and piece.taking[1] == row1:
+                            all_sprites.remove(self.field[piece.taking[2][1]][piece.taking[2][0]])
+                            all_pieces.remove(self.field[piece.taking[2][1]][piece.taking[2][0]])
+                            self.field[piece.taking[2][1]][piece.taking[2][0]] = None
                         if type(piece) is Pawn and piece.taking:
-                            piece.taking = (None, None)
+                            piece.taking = (None, None, None, None)
                         if abs(row1 - row) == 2:
                             taking_on_the_pass(piece, board)
                         self.color = opponent(self.color)
@@ -582,7 +575,6 @@ class Board(pygame.sprite.Sprite):
                             self.checks[1] += 1
                         else:
                             self.checks[1] = 0
-                        print(self.checks)
                         pawn_conversion(board)
                         return True
                 draw_possible_moves(board, row, col)
@@ -593,16 +585,6 @@ class Board(pygame.sprite.Sprite):
             self.field[row1][col1] = piece  # Поставить на новое место.
             piece.rect.x, piece.rect.y = get_pixels((col1, row1))
             self.color = opponent(self.color)
-            if piece.char() == 'P':
-                if piece.pass_eating[0]:
-                    all_sprites.remove(
-                        board.field[
-                            piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
-                            piece.pass_eating[2]])
-                    board.field[
-                        piece.pass_eating[1] - 1 if self.color == WHITE else piece.pass_eating[1] + 1][
-                        piece.pass_eating[2]] = None
-                    piece.pass_eating = [False, 0, 0]
             if piece.char() == 'K' or piece.char() == 'R':
                 piece.turn += 1
             check(self)
@@ -657,7 +639,7 @@ class Pawn(pygame.sprite.Sprite):
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
-        self.taking = (None, None)
+        self.taking = (None, None, None, None)
         self.color = color
         if self.color == WHITE:
             self.image = pygame.transform.scale(load_image('Wpawn.png'), (cell_size, cell_size))
@@ -689,9 +671,6 @@ class Pawn(pygame.sprite.Sprite):
         if row + direction == row1 and board.field[row1][col] is None:
             return True
 
-        if abs(row1 - row) == 2:
-            self.taking_on_the_pass(board, row1, col1, row)
-
         if (row == start_row
                 and row + 2 * direction == row1
                 and board.field[row + direction][col] is None
@@ -712,22 +691,6 @@ class Pawn(pygame.sprite.Sprite):
                 return (row + direction == row1
                         and (col + 1 == col1 or col - 1 == col1))
         return False
-
-    def taking_on_the_pass(self, board, row1, col1, row):
-        if col1 < 7:
-            figure1 = board.field[row1][col1 + 1]
-            figure2 = board.field[row1][col1 - 1]
-            if type(figure1) is Pawn:
-                if figure1.color == opponent(self.color):
-                    figure1.pass_eating = [True, row1 - 1 if row == 1 else row1 + 1, col1, self]
-            if type(figure2) is Pawn:
-                if figure2.color == opponent(self.color):
-                    figure2.pass_eating = [True, row1 - 1 if row == 1 else row1 + 1, col1, self]
-        else:
-            figure2 = board.field[row1][col1 - 1]
-            if type(figure2) is Pawn:
-                if figure2.color == opponent(self.color):
-                    figure2.pass_eating = [True, row1 - 1 if row == 1 else row1 + 1, col1, self]
 
 
 class Knight(pygame.sprite.Sprite):
