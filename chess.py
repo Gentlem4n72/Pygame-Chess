@@ -569,10 +569,14 @@ class Board(pygame.sprite.Sprite):
                         checks = check(self)
                         if checks[0]:
                             self.checks[0] += 1
+                            if self.color == BLACK:
+                                self.checks[0] += 1
                         else:
                             self.checks[0] = 0
                         if checks[1]:
                             self.checks[1] += 1
+                            if self.color == WHITE:
+                                self.checks[1] += 1
                         else:
                             self.checks[1] = 0
                         pawn_conversion(board)
@@ -686,11 +690,8 @@ class Pawn(pygame.sprite.Sprite):
 
         direction = 1 if (self.color == BLACK) else -1
 
-        if board.field[row1][col1]:
-            if board.field[row1][col1] != self.color:
-                return (row + direction == row1
-                        and (col + 1 == col1 or col - 1 == col1))
-        return False
+        return (row + direction == row1
+                and (col + 1 == col1 or col - 1 == col1))
 
 
 class Knight(pygame.sprite.Sprite):
