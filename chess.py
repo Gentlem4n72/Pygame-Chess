@@ -582,8 +582,8 @@ class Board(pygame.sprite.Sprite):
                 draw_possible_moves(board, row, col)
         else:
             flag = False
-            if self.field[row1][col1]:
-                piece = self.field[row1][col1]
+            piece = self.field[row1][col1]
+            if piece:
                 pygame.sprite.spritecollide(piece, all_pieces, True)
                 self.eaten_pieces.append((piece.__class__, piece.color, piece.rect.x, piece.rect.y))
                 self.field[row1][col1] = None
@@ -595,6 +595,7 @@ class Board(pygame.sprite.Sprite):
             if board.turns[board.current_turn][-1]:
                 new_piece = self.eaten_pieces.pop()
                 self.field[row][col] = new_piece[0](new_piece[1], new_piece[2], new_piece[3])
+                self.turns[self.current_turn] = (*self.turns[self.current_turn][:-1], False)
             if flag:
                 self.turns[self.current_turn] = (*self.turns[self.current_turn][:-1], True)
             piece.rect.x, piece.rect.y = get_pixels((col1, row1))
