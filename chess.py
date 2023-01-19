@@ -521,6 +521,7 @@ class Board(pygame.sprite.Sprite):
             return None
 
     def move_piece(self, col, row, row1=None, col1=None, protocol=None):
+        # Режим игры
         if row1 is None and col1 is None:
             while True:
                 for event in pygame.event.get():
@@ -597,10 +598,13 @@ class Board(pygame.sprite.Sprite):
                         checkmate(self.color, self)
                         return True
                 draw_possible_moves(board, row, col)
+        # Режим анализа (без проверок)
         else:
             flag = False
             reverse = False
             piece = self.field[row1][col1]
+
+            # Съедаем фигуру если она есть
             if piece:
                 pygame.sprite.spritecollide(piece, all_pieces, True)
                 self.eaten_pieces.append((piece.__class__, piece.color, piece.rect.x, piece.rect.y))
@@ -610,25 +614,26 @@ class Board(pygame.sprite.Sprite):
             piece = self.field[row][col]
             self.field[row][col] = None  # Снять фигуру.
             self.field[row1][col1] = piece  # Поставить на новое место.
+
+            # Удаляем спрайт съеденой фигуры и меняем флаг
             if board.turns[board.current_turn][-1]:
                 new_piece = self.eaten_pieces.pop()
                 self.field[row][col] = new_piece[0](new_piece[1], new_piece[2], new_piece[3])
                 board.turns[board.current_turn] = (*board.turns[board.current_turn][:-1], False)
             if flag:
                 board.turns[board.current_turn] = (*board.turns[board.current_turn][:-1], True)
+
             piece.rect.x, piece.rect.y = get_pixels((col1, row1))
+
+            # Заменяем пешку на выбранную в тот момент матча
             if board.turns[board.current_turn][-2].isalpha() and board.turns[board.current_turn][-2] != '':
+                # Меняем обратно в случем шага назад по протоколу
                 if isinstance(piece, [Rook, Knight, Bishop, Queen][['r', 'k', 'b', 'q'].index(
                         board.turns[board.current_turn][-2])]):
                     reverse = True
                 pawn_conversion(board, col1, row1, choice=board.turns[board.current_turn][-2], reverse=reverse)
+
             self.color = opponent(self.color)
-            if type(piece) is Pawn and piece.taking:
-                piece.taking = (None, None)
-            if abs(row1 - row) == 2:
-                taking_on_the_pass(piece, board)
-            if piece.char() == 'K' or piece.char() == 'R':
-                piece.turn += 1
             check(self)
             checkmate(self.color, self)
             return True
@@ -997,7 +1002,7 @@ def analysis():
                         board.indent_v <= y <= board.indent_v + BOARD_SIZE):
                     x, y = get_cell((x, y))
 
-                    if event.button == 3:  # пкм
+                    if event.button == 3:  # пкм - "стрелка"
                         if not arrow:
                             arrow = [x, y]
                             borders += [get_pixels((x, y))]
@@ -1008,23 +1013,24 @@ def analysis():
                             arrow = []
                             borders += [get_pixels((x, y))]
 
-                    if event.button == 1:  # лкм
+                    if event.button == 1:  # лкм - круг
                         if (x, y) not in circles:
                             circles.append((x, y))
                         else:
                             circles.remove((x, y))
 
-                    if event.button == 2:  # колёсико мыши
+                    if event.button == 2:  # колёсико мыши - очистка меток
                         circles = []
                         arrows = []
                         arrow = []
                         borders = []
-
+                # Возврат на главное меню
                 elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
                     click.play()
                     if protocol is not None:
                         protocol.close()
                     return
+                # Назад по протоколу
                 elif ((100 * SCALE_X <= x <= 180 * SCALE_X and 750 * SCALE_Y <= y <= 855 * SCALE_Y) or
                       (100 * SCALE_X <= x <= 330 * SCALE_X and 775 * SCALE_X <= y <= 835 * SCALE_Y)):
                     if board.current_turn != -1:
@@ -1039,6 +1045,7 @@ def analysis():
                         arrows = []
                         arrow = []
                         borders = []
+                # Вперёд по протоколу
                 elif ((600 * SCALE_X <= x <= 680 and 750 * SCALE_Y <= y <= 855 * SCALE_Y) or
                       (450 * SCALE_X <= x <= 680 and 775 * SCALE_Y <= y <= 835 * SCALE_Y)):
                     if board.current_turn + 1 <= len(board.turns) - 1:
