@@ -63,13 +63,29 @@ def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
     return True
 
 
-def pawn_conversion(board):
-    for piece in filter(lambda x: isinstance(x, Pawn), all_pieces):
-        x, y = get_cell((piece.rect.x, piece.rect.y))
-        if (piece.color == WHITE and y == 0 or
-                (piece.color == BLACK and y == 7)):
-            choice = draw_selection_dialog()
-            board.field[y][x] = choice(piece.color, piece.rect.x, piece.rect.y)
+def pawn_conversion(board, x=None, y=None, choice=None, reverse=False):
+    if x is None and y is None and choice is None:
+        for piece in filter(lambda x: isinstance(x, Pawn), all_pieces):
+            x, y = get_cell((piece.rect.x, piece.rect.y))
+            if (piece.color == WHITE and y == 0 or
+                    (piece.color == BLACK and y == 7)):
+                choice = draw_selection_dialog()
+                board.field[y][x] = choice(piece.color, piece.rect.x, piece.rect.y)
+                all_pieces.remove(piece)
+                all_sprites.remove(piece)
+                return choice
+    else:
+        if not reverse:
+            piece = board.field[y][x]
+            if (piece.color == WHITE and y == 0) or (piece.color == BLACK and y == 7):
+                board.field[y][x] = [Rook, Knight, Bishop, Queen][['r', 'k', 'b', 'q'].index(choice)](piece.color,
+                                                                                                      piece.rect.x,
+                                                                                                      piece.rect.y)
+                all_pieces.remove(piece)
+                all_sprites.remove(piece)
+        else:
+            piece = board.field[y][x]
+            board.field[y][x] = Pawn(piece.color, piece.rect.x, piece.rect.y)
             all_pieces.remove(piece)
             all_sprites.remove(piece)
 
@@ -562,8 +578,6 @@ class Board(pygame.sprite.Sprite):
                         figure.play()
 
                         self.protocol.append(('ABCDEFGH'[col] + str(8 - row), 'ABCDEFGH'[col1] + str(8 - row1)))
-                        if protocol is not None:
-                            protocol.write(f'{col} {row} {col1} {row1}\n')
 
                         self.field[row][col] = None  # Снять фигуру.
                         self.field[row1][col1] = piece  # Поставить на новое место.
@@ -576,12 +590,16 @@ class Board(pygame.sprite.Sprite):
                         if piece.char() == 'K' or piece.char() == 'R':
                             piece.turn += 1
                         check(self)
-                        pawn_conversion(board)
+                        choice = pawn_conversion(board)
+                        choice = ['r', 'k', 'b', 'q'][[Rook, Knight, Bishop, Queen].index(choice)] if choice else ''
+                        if protocol is not None:
+                            protocol.write(f'{col} {row} {col1} {row1} {choice}\n')
                         checkmate(self.color, self)
                         return True
                 draw_possible_moves(board, row, col)
         else:
             flag = False
+            reverse = False
             piece = self.field[row1][col1]
             if piece:
                 pygame.sprite.spritecollide(piece, all_pieces, True)
@@ -595,10 +613,15 @@ class Board(pygame.sprite.Sprite):
             if board.turns[board.current_turn][-1]:
                 new_piece = self.eaten_pieces.pop()
                 self.field[row][col] = new_piece[0](new_piece[1], new_piece[2], new_piece[3])
-                self.turns[self.current_turn] = (*self.turns[self.current_turn][:-1], False)
+                board.turns[board.current_turn] = (*board.turns[board.current_turn][:-1], False)
             if flag:
-                self.turns[self.current_turn] = (*self.turns[self.current_turn][:-1], True)
+                board.turns[board.current_turn] = (*board.turns[board.current_turn][:-1], True)
             piece.rect.x, piece.rect.y = get_pixels((col1, row1))
+            if board.turns[board.current_turn][-2].isalpha() and board.turns[board.current_turn][-2] != '':
+                if isinstance(piece, [Rook, Knight, Bishop, Queen][['r', 'k', 'b', 'q'].index(
+                        board.turns[board.current_turn][-2])]):
+                    reverse = True
+                pawn_conversion(board, col1, row1, choice=board.turns[board.current_turn][-2], reverse=reverse)
             self.color = opponent(self.color)
             if type(piece) is Pawn and piece.taking:
                 piece.taking = (None, None)
@@ -1005,7 +1028,8 @@ def analysis():
                 elif ((100 * SCALE_X <= x <= 180 * SCALE_X and 750 * SCALE_Y <= y <= 855 * SCALE_Y) or
                       (100 * SCALE_X <= x <= 330 * SCALE_X and 775 * SCALE_X <= y <= 835 * SCALE_Y)):
                     if board.current_turn != -1:
-                        col1, row1, col, row = board.turns[board.current_turn][:-1]
+                        col1, row1, col, row = map(int, board.turns[board.current_turn][:(-2 if len(
+                            board.turns[board.current_turn]) == 6 else -1)])
                         board.move_piece(col, row, row1=row1, col1=col1)
                         figure.play()
                         del board.protocol[-1]
@@ -1019,7 +1043,8 @@ def analysis():
                       (450 * SCALE_X <= x <= 680 and 775 * SCALE_Y <= y <= 835 * SCALE_Y)):
                     if board.current_turn + 1 <= len(board.turns) - 1:
                         board.current_turn += 1
-                        col, row, col1, row1 = board.turns[board.current_turn][:-1]
+                        col, row, col1, row1 = map(int, board.turns[board.current_turn][:(-2 if len(
+                            board.turns[board.current_turn]) == 6 else -1)])
                         board.move_piece(col, row, row1=row1, col1=col1)
                         figure.play()
                         circles = []
@@ -1046,8 +1071,7 @@ def analysis():
         if not filename:
             filename = get_filename()
             protocol = open(filename, mode='r')
-            board.turns = [tuple([*map(int, x.rstrip().split()), False]) for x in protocol.readlines()]
-
+            board.turns = [tuple([*x.rstrip().split(), False]) for x in protocol.readlines()]
         else:
             protocol = open(filename, mode='r')
 
