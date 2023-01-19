@@ -664,7 +664,7 @@ class Pawn(pygame.sprite.Sprite):
         return 'P'
 
     def can_move(self, board, row, col, row1, col1):
-        if self.taking[1] == row1 and self.taking[0] == col1:
+        if self.taking[1] == col1 and self.taking[0] == row1:
             return True
 
         if col != col1:
