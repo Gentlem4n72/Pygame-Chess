@@ -1064,6 +1064,12 @@ def analysis(file=''):
     protocol = None
     filename = ''
 
+    screen.fill('#404147')
+    draw_game_menu(screen, board, analysis=True)
+    all_sprites.update()
+    all_sprites.draw(screen)
+    pygame.display.flip()
+
     if file:  # если перешли с режима игры, то открываем последнюю игру
         protocol = open(file, mode='r')
         # print(file)
