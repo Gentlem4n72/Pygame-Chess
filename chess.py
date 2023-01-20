@@ -1175,13 +1175,41 @@ def challenges():
         # print(mimic_field)
         for row in range(8):
             for col in range(8):
-                if mimic_field[row][col] == 'bK':
-                    board.field[row][col] = King(BLACK, board.indent_h + cell_size * col, board.indent_v + cell_size * row)
-                if mimic_field[row][col] == 'wK':
+                if mimic_field[row][col] == 'wK':  # белый король
                     board.field[row][col] = King(WHITE, board.indent_h + cell_size * col,
                                                  board.indent_v + cell_size * row)
-                if mimic_field[row][col] == 'wQ':
+                elif mimic_field[row][col] == 'bK':  # черный король
+                    board.field[row][col] = King(BLACK, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                elif mimic_field[row][col] == 'wQ':  # белый ферзь
                     board.field[row][col] = Queen(WHITE, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                elif mimic_field[row][col] == 'bQ':  # черный ферзь
+                    board.field[row][col] = Queen(BLACK, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                elif mimic_field[row][col] == 'wR':  # белая ладья
+                    board.field[row][col] = Rook(WHITE, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                elif mimic_field[row][col] == 'bR':  # черная ладья
+                    board.field[row][col] = Rook(BLACK, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                elif mimic_field[row][col] == 'wP':  # белая пешка
+                    board.field[row][col] = Pawn(WHITE, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                elif mimic_field[row][col] == 'bP':  # черная пешка
+                    board.field[row][col] = Pawn(BLACK, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                elif mimic_field[row][col] == 'wN':  # белый конь
+                    board.field[row][col] = Knight(WHITE, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                elif mimic_field[row][col] == 'bN':  # черный конь
+                    board.field[row][col] = Knight(BLACK, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                elif mimic_field[row][col] == 'wB':  # белый слон
+                    board.field[row][col] = Bishop(WHITE, board.indent_h + cell_size * col,
+                                                 board.indent_v + cell_size * row)
+                elif mimic_field[row][col] == 'bB':  # черный слон
+                    board.field[row][col] = Bishop(BLACK, board.indent_h + cell_size * col,
                                                  board.indent_v + cell_size * row)
     protocol = open(f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt', mode='w+')
     while True:
