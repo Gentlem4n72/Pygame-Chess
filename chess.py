@@ -247,7 +247,7 @@ def get_pixels(coords):
 
 
 # отрисовка игрового меню (слева от шахматной доски)
-def draw_game_menu(screen, board, analysis=False, challenges=False):
+def draw_game_menu(screen, board, analysis=False, challenges=False, file=None):
     global check_alarm
 
     pygame.draw.rect(screen, 'black', (WIDTH - BOARD_SIZE - INDENT * 3, HEIGHT - BOARD_SIZE - INDENT * 3,
@@ -316,6 +316,11 @@ def draw_game_menu(screen, board, analysis=False, challenges=False):
         screen.blit(check_text, (660 * SCALE_X - check_text.get_width() // 2,
                                  180 * SCALE_Y - check_text.get_height() // 2))
 
+    if file is not None:  # название испытания
+        check_text = pygame.font.Font(None, round(40 * SCALE_X)).render(file, True, 'white')
+        screen.blit(check_text, (450 * SCALE_X - check_text.get_width() // 2,
+                                 55 * SCALE_Y - check_text.get_height() // 2))
+
     # звук предупреждения о шахе
     if not check_alarm and (checks[0] or checks[1]):
         check_sound.play()
@@ -325,18 +330,19 @@ def draw_game_menu(screen, board, analysis=False, challenges=False):
 
 
 # отрисовка экрана победы
-def draw_win_screen(winner):
+def draw_win_screen(winner, challenges=False):
     global b_wins, w_wins
     v = 350
     fps = 60
     clock = pygame.time.Clock()
     y = -500 * SCALE_Y
 
-    # обновление счета
-    if winner == WHITE:
-        w_wins += 1
-    else:
-        b_wins += 1
+    if not challenges:
+        # обновление счета
+        if winner == WHITE:
+            w_wins += 1
+        else:
+            b_wins += 1
 
     while True:
         for event in pygame.event.get():
@@ -364,18 +370,32 @@ def draw_win_screen(winner):
         all_sprites.draw(screen)
         pygame.draw.rect(screen, '#404147', (300 * SCALE_X, y, 1150 * SCALE_X, 600 * SCALE_Y))
         pygame.draw.rect(screen, 'black', (300 * SCALE_X, y, 1150 * SCALE_X, 600 * SCALE_Y), round(5 * SCALE_X))
-        for _ in range(3):
-            text = ['На главное меню', 'Реванш', 'Анализ партии'][_]
-            pygame.draw.rect(screen, 'black', (375 * SCALE_X + 350 * SCALE_X * _, y + 400 * SCALE_Y,
-                                               300 * SCALE_X, 75 * SCALE_Y), 5)
-            text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
-            screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
-                               y + 435 * SCALE_Y - text.get_height() // 2))
-        text = pygame.font.Font(None, round(70 * SCALE_Y)).render('Победа ' + ('белых.' if winner == WHITE
-                                                                               else 'чёрных.'), True, 'white')
-        score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True, 'white')
-        screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
-        screen.blit(score, (875 * SCALE_X - score.get_width() // 2, y + 250 * SCALE_Y - score.get_height() // 2))
+
+        if challenges:
+            for _ in range(2):
+                text = ['На главное меню', 'Следующее'][_]
+                pygame.draw.rect(screen, 'black', (375 * SCALE_X + 350 * SCALE_X * _, y + 400 * SCALE_Y,
+                                                   300 * SCALE_X, 75 * SCALE_Y), 5)
+                text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
+                screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
+                                   y + 435 * SCALE_Y - text.get_height() // 2))
+
+                text = pygame.font.Font(None, round(70 * SCALE_Y)).render('Испытание пройдено.', True, 'white')
+                screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
+        else:
+            for _ in range(3):
+                text = ['На главное меню', 'Реванш', 'Анализ партии'][_]
+                pygame.draw.rect(screen, 'black', (375 * SCALE_X + 350 * SCALE_X * _, y + 400 * SCALE_Y,
+                                                   300 * SCALE_X, 75 * SCALE_Y), 5)
+                text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
+                screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
+                                   y + 435 * SCALE_Y - text.get_height() // 2))
+            text = pygame.font.Font(None, round(70 * SCALE_Y)).render('Победа ' + ('белых.' if winner == WHITE
+                                                                                   else 'чёрных.'), True, 'white')
+            score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True, 'white')
+            screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
+            screen.blit(score, (875 * SCALE_X - score.get_width() // 2, y + 250 * SCALE_Y - score.get_height() // 2))
+
         pygame.display.flip()
 
 
@@ -494,7 +514,7 @@ def surrender(winner, challenges=False):
         pygame.draw.rect(screen, 'black', (300 * SCALE_X, y, 1150 * SCALE_X, 600 * SCALE_Y), round(5 * SCALE_X))
         if challenges:
             for _ in range(2):
-                text = ['На главное меню', 'Реванш'][_]
+                text = ['На главное меню', 'Заново'][_]
                 pygame.draw.rect(screen, 'black', (375 * SCALE_X + 350 * SCALE_X * _, y + 400 * SCALE_Y,
                                                    300 * SCALE_X, 75 * SCALE_Y), 5)
                 text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
@@ -575,7 +595,8 @@ class Board(pygame.sprite.Sprite):  # доска
         else:
             return None
 
-    def move_piece(self, col, row, row1=None, col1=None, protocol=None):
+    def move_piece(self, col, row, row1=None, col1=None, moves=None, protocol=None):
+        global move
         # Режим игры
         if row1 is None and col1 is None:
             while True:
@@ -588,6 +609,16 @@ class Board(pygame.sprite.Sprite):  # доска
                             (self.indent_h <= event.pos[0] <= self.indent_h + BOARD_SIZE and
                              self.indent_v <= event.pos[1] <= self.indent_v + BOARD_SIZE)):
                         col1, row1 = get_cell(event.pos)
+
+                        # режим испытаний
+                        if moves is not None:
+                            if row1 != moves[move][2] or col1 != moves[move][3]:
+                                # print(moves[move])
+                                # print(row1, col1, moves[move][2], moves[move][3])
+                                return False
+                            else:
+                                move += 1
+
                         if not correct_coords(row, col) or not correct_coords(row1, col1):
                             return False
                         if (col, row) == (col1, row1):
@@ -1177,9 +1208,52 @@ def analysis(file=''):
         pygame.display.flip()
 
 
+def set_challenge(mimic_field):
+    for row in range(8):
+        for col in range(8):
+            if mimic_field[row][col] == 'wK':  # белый король
+                board.field[row][col] = King(WHITE, board.indent_h + cell_size * col,
+                                             board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'bK':  # черный король
+                board.field[row][col] = King(BLACK, board.indent_h + cell_size * col,
+                                             board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'wQ':  # белый ферзь
+                board.field[row][col] = Queen(WHITE, board.indent_h + cell_size * col,
+                                              board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'bQ':  # черный ферзь
+                board.field[row][col] = Queen(BLACK, board.indent_h + cell_size * col,
+                                              board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'wR':  # белая ладья
+                board.field[row][col] = Rook(WHITE, board.indent_h + cell_size * col,
+                                             board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'bR':  # черная ладья
+                board.field[row][col] = Rook(BLACK, board.indent_h + cell_size * col,
+                                             board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'wP':  # белая пешка
+                board.field[row][col] = Pawn(WHITE, board.indent_h + cell_size * col,
+                                             board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'bP':  # черная пешка
+                board.field[row][col] = Pawn(BLACK, board.indent_h + cell_size * col,
+                                             board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'wN':  # белый конь
+                board.field[row][col] = Knight(WHITE, board.indent_h + cell_size * col,
+                                               board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'bN':  # черный конь
+                board.field[row][col] = Knight(BLACK, board.indent_h + cell_size * col,
+                                               board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'wB':  # белый слон
+                board.field[row][col] = Bishop(WHITE, board.indent_h + cell_size * col,
+                                               board.indent_v + cell_size * row)
+            elif mimic_field[row][col] == 'bB':  # черный слон
+                board.field[row][col] = Bishop(BLACK, board.indent_h + cell_size * col,
+                                               board.indent_v + cell_size * row)
+
+
 # режим испытаний
 def challenges():
-    global board, check_alarm, all_sprites, all_pieces
+    global board, check_alarm, all_sprites, all_pieces, move
+    right_move = True
+    levels = ['Шах в 1 ход', 'Мат в 1 ход']
     board.field = []
     for row in range(8):
         board.field.append([None] * 8)
@@ -1188,47 +1262,17 @@ def challenges():
             all_sprites.remove(sprites)
     all_pieces.empty()
     # print(os.path.join('Challenges', '1.txt'))
-    with open(os.path.join('Challenges', '1.txt')) as f:
+    file = 0
+    with open(os.path.join('Challenges', f'{levels[file]}.txt')) as f:
         mimic_field = [*map(lambda x: x.split(), [*map(lambda x: x.rstrip('\n'), f.readlines())])]
         # print(mimic_field)
-        for row in range(8):
-            for col in range(8):
-                if mimic_field[row][col] == 'wK':  # белый король
-                    board.field[row][col] = King(WHITE, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'bK':  # черный король
-                    board.field[row][col] = King(BLACK, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'wQ':  # белый ферзь
-                    board.field[row][col] = Queen(WHITE, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'bQ':  # черный ферзь
-                    board.field[row][col] = Queen(BLACK, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'wR':  # белая ладья
-                    board.field[row][col] = Rook(WHITE, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'bR':  # черная ладья
-                    board.field[row][col] = Rook(BLACK, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'wP':  # белая пешка
-                    board.field[row][col] = Pawn(WHITE, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'bP':  # черная пешка
-                    board.field[row][col] = Pawn(BLACK, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'wN':  # белый конь
-                    board.field[row][col] = Knight(WHITE, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'bN':  # черный конь
-                    board.field[row][col] = Knight(BLACK, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'wB':  # белый слон
-                    board.field[row][col] = Bishop(WHITE, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
-                elif mimic_field[row][col] == 'bB':  # черный слон
-                    board.field[row][col] = Bishop(BLACK, board.indent_h + cell_size * col,
-                                                 board.indent_v + cell_size * row)
+        moves = []
+        for elem in mimic_field[9:]:
+            moves.append(list(map(int, elem)))
+        # moves = list(map(int, mimic_field[9:]))
+        move = 0
+        # print(moves)
+        set_challenge(mimic_field)
     protocol = open(f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt', mode='w+')
     while True:
         for event in pygame.event.get():
@@ -1242,26 +1286,94 @@ def challenges():
                     if (not (board.field[y][x] is None) and
                             board.color == board.field[y][x].get_color()):
                         figure.play()
-                        board.move_piece(x, y, protocol=protocol)
+                        move_before = move
+                        if not move % 2:
+                            board.move_piece(x, y, moves=moves, protocol=protocol)
+                        else:
+                            board.move_piece(moves[move][1], moves[move][0],
+                                             row1=moves[move][2], col1=moves[move][3])
+                            move += 1
+
+                        if move == move_before:
+                            right_move = False
+
+                        if move == len(moves):
+                            gameover.play()
+                            choice = draw_win_screen(WHITE, challenges=True)
+                            if choice == 1:  # возврат в главное меню
+                                click.play()
+                                return
+                            elif choice == 2 and file < 1:  # следующее
+                                click.play()
+                                board = Board()
+                                right_move = True
+                                board.field = []
+                                for row in range(8):
+                                    board.field.append([None] * 8)
+                                for sprites in all_sprites.sprites():
+                                    if type(sprites) is not Board:
+                                        all_sprites.remove(sprites)
+                                all_pieces.empty()
+                                file += 1
+                                with open(os.path.join('Challenges', f'{levels[file]}.txt')) as f:
+                                    mimic_field = [
+                                        *map(lambda x: x.split(), [*map(lambda x: x.rstrip('\n'), f.readlines())])]
+                                    moves = []
+                                    for elem in mimic_field[9:]:
+                                        moves.append(list(map(int, elem)))
+                                    move = 0
+                                    set_challenge(mimic_field)
+                                protocol = open(f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt',
+                                                mode='w+')
+                                check_alarm = False
+
                 elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
                     click.play()
                     return
                 elif 150 * SCALE_X <= x <= 675 * SCALE_X and 750 * SCALE_Y <= y <= 875 * SCALE_Y:
                     gameover.play()
                     choice = surrender(opponent(board.color), challenges=True)
-                    if choice == 1:
+                    if choice == 1:  # возврат в главное меню
                         click.play()
                         return
-                    elif choice == 2:
+                    elif choice == 2:  # заново
                         click.play()
-                        all_sprites.empty()
+                        right_move = True
+                        board.field = []
+                        for row in range(8):
+                            board.field.append([None] * 8)
+                        for sprites in all_sprites.sprites():
+                            if type(sprites) is not Board:
+                                all_sprites.remove(sprites)
                         all_pieces.empty()
-                        board = Board()
+                        file = 0
+                        with open(os.path.join('Challenges', f'{levels[file]}.txt')) as f:
+                            mimic_field = [*map(lambda x: x.split(), [*map(lambda x: x.rstrip('\n'), f.readlines())])]
+                            moves = []
+                            for elem in mimic_field[9:]:
+                                moves.append(list(map(int, elem)))
+                            move = 0
+                            set_challenge(mimic_field)
+                        protocol = open(f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt', mode='w+')
                         check_alarm = False
         screen.fill('#404147')
-        draw_game_menu(screen, board)
+        draw_game_menu(screen, board, file=levels[file])
         all_sprites.update()
         all_sprites.draw(screen)
+
+        if not right_move:
+            pygame.draw.rect(screen, '#404147', (1000 * SCALE_X, 400 * SCALE_Y, 500 * SCALE_X, 100 * SCALE_Y))
+            pygame.draw.rect(screen, 'black', (1000 * SCALE_X, 400 * SCALE_Y, 500 * SCALE_X, 100 * SCALE_Y),
+                             round(5 * SCALE_X))
+            text = pygame.font.Font(None, round(45 * SCALE_Y)).render('Неправильный ход', True, 'white')
+            screen.blit(text, (965 * SCALE_X + text.get_width() // 2, 420 * SCALE_Y + text.get_height() // 2))
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    right_move = True
+
         pygame.display.flip()
 
 
@@ -1346,6 +1458,7 @@ if __name__ == "__main__":
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
                 board = Board()
+                move = 0
                 challenges()
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
