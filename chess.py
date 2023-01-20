@@ -38,9 +38,9 @@ def taking_on_the_pass(piece, board):
         if type(piece) is Pawn:
             if type(figure1) is Pawn and figure1.color != piece.color:
                 figure1.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure1.color == WHITE else
-                                   get_cell((piece.rect.x, piece.rect.y))[1] + 1,
-                                   get_cell((piece.rect.x, piece.rect.y))[0],
-                                   piece)
+                                  get_cell((piece.rect.x, piece.rect.y))[1] + 1,
+                                  get_cell((piece.rect.x, piece.rect.y))[0],
+                                  piece)
             elif type(figure2) is Pawn and figure2.color != piece.color:
                 figure2.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure2.color == WHITE else
                                   get_cell((piece.rect.x, piece.rect.y))[1] + 1,
@@ -181,7 +181,7 @@ def checkmate(color, board):
                                          get_cell((figure.rect.x, figure.rect.y))[0],
                                          x,
                                          y,
-                                         mate=True)\
+                                         mate=True) \
                             or figure.can_move(board,
                                                get_cell((figure.rect.x, figure.rect.y))[1],
                                                get_cell((figure.rect.x, figure.rect.y))[0],
@@ -285,7 +285,8 @@ def draw_game_menu(screen, board, analysis=False, challenges=False, file=None):
                               55 * SCALE_Y - return_text.get_height() // 2))
 
     if not analysis:  # кнопки "сдаться" нет в анализе партий
-        pygame.draw.rect(screen, 'black', (150 * SCALE_X, 750 * SCALE_Y, 525 * SCALE_X, 125 * SCALE_Y), round(5 * SCALE_X))
+        pygame.draw.rect(screen, 'black', (150 * SCALE_X, 750 * SCALE_Y, 525 * SCALE_X, 125 * SCALE_Y),
+                         round(5 * SCALE_X))
         pygame.draw.rect(screen, '#660000', (155 * SCALE_X, 755 * SCALE_Y, 515 * SCALE_X, 115 * SCALE_Y))
         surr_text = pygame.font.Font(None, round(50 * SCALE_X)).render('Сдаться', True, 'white')
         screen.blit(surr_text, (413 * SCALE_X - surr_text.get_width() // 2,
@@ -326,7 +327,7 @@ def draw_game_menu(screen, board, analysis=False, challenges=False, file=None):
     if not check_alarm and (checks[0] or checks[1]):
         check_sound.play()
         check_alarm = True
-    if check_alarm and not(checks[0] or checks[1]):
+    if check_alarm and not (checks[0] or checks[1]):
         check_alarm = False
 
 
@@ -393,7 +394,8 @@ def draw_win_screen(winner, challenges=False):
                                    y + 435 * SCALE_Y - text.get_height() // 2))
             text = pygame.font.Font(None, round(70 * SCALE_Y)).render('Победа ' + ('белых.' if winner == WHITE
                                                                                    else 'чёрных.'), True, 'white')
-            score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True, 'white')
+            score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True,
+                                                                       'white')
             screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
             screen.blit(score, (875 * SCALE_X - score.get_width() // 2, y + 250 * SCALE_Y - score.get_height() // 2))
 
@@ -449,7 +451,7 @@ def draw_selection_dialog():
         x, y = cell_size + board.indent_h + 25 * SCALE_X, cell_size * 3 + board.indent_v + 60 * SCALE_Y
         for i in range(4):
             piece = ['rook', 'knight', 'bishop', 'queen'][i]
-            screen.blit(pygame.transform.scale(load_image(f'W{piece}.png' if board.color == BLACK else f'b{piece}.png'),
+            screen.blit(pygame.transform.scale(load_image(f'w{piece}.png' if board.color == BLACK else f'b{piece}.png'),
                                                (cell_size, cell_size)), (x + 150 * SCALE_X * i, y))
             pygame.draw.rect(screen, 'white',
                              (x + 150 * SCALE_X * i, y, cell_size, cell_size), round(5 * SCALE_X))
@@ -531,12 +533,14 @@ def surrender(winner, challenges=False):
                                    y + 435 * SCALE_Y - text.get_height() // 2))
         # тот, кто сдался - проиграл
         text = pygame.font.Font(None, round(70 * SCALE_Y)).render(('Черные' if winner == WHITE else 'Белые') +
-                                                                  ' сдались. ' + 'Победа ' + ('белых.' if winner == WHITE
-                                                                               else 'чёрных.'), True, 'white')
+                                                                  ' сдались. ' + 'Победа ' + (
+                                                                      'белых.' if winner == WHITE
+                                                                      else 'чёрных.'), True, 'white')
         screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
 
         if not challenges:
-            score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True, 'white')
+            score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True,
+                                                                       'white')
             screen.blit(score, (875 * SCALE_X - score.get_width() // 2, y + 250 * SCALE_Y - score.get_height() // 2))
         pygame.display.flip()
 
@@ -613,8 +617,8 @@ class Board(pygame.sprite.Sprite):  # доска
 
                         # режим испытаний
                         if moves is not None:
-                            if row1 != moves[move][2] or col1 != moves[move][3] or\
-                                row != moves[move][0] or col != moves[move][1]:
+                            if row1 != moves[move][2] or col1 != moves[move][3] or \
+                                    row != moves[move][0] or col != moves[move][1]:
                                 # print(moves[move])
                                 # print(row1, col1, moves[move][2], moves[move][3])
                                 return False
@@ -630,7 +634,8 @@ class Board(pygame.sprite.Sprite):  # доска
                             if not piece.can_move(self, row, col, row1, col1):
                                 return False
                         else:
-                            if piece.can_attack(self, row, col, row1, col1) and self.field[row1][col1].color != piece.color:
+                            if piece.can_attack(self, row, col, row1, col1) and self.field[row1][
+                                col1].color != piece.color:
                                 pygame.sprite.spritecollide(self.field[row1][col1], all_pieces, True)
                                 self.field[row1][col1] = None
                             elif (row == row1 and
@@ -743,12 +748,12 @@ class Board(pygame.sprite.Sprite):  # доска
             return True
 
 
-class Rook(pygame.sprite.Sprite): # ладья
+class Rook(pygame.sprite.Sprite):  # ладья
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.color = color
         if self.color == WHITE:
-            self.image = load_image('Wrook.png')
+            self.image = load_image('wrook.png')
         else:
             self.image = load_image('brook.png')
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
@@ -792,7 +797,7 @@ class Pawn(pygame.sprite.Sprite):  # пешка
         self.taking = (None, None, None)
         self.color = color
         if self.color == WHITE:
-            self.image = pygame.transform.scale(load_image('Wpawn.png'), (cell_size, cell_size))
+            self.image = pygame.transform.scale(load_image('wpawn.png'), (cell_size, cell_size))
         else:
             self.image = pygame.transform.scale(load_image('bpawn.png'), (cell_size, cell_size))
         self.rect = self.image.get_rect()
@@ -850,7 +855,7 @@ class Knight(pygame.sprite.Sprite):  # конь
         super().__init__(all_sprites, all_pieces)
         self.color = color
         if self.color == WHITE:
-            self.image = load_image("Wknight.png")
+            self.image = load_image("wknight.png")
         else:
             self.image = load_image("bknight.png")
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
@@ -882,7 +887,7 @@ class King(pygame.sprite.Sprite):  # король
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
         self.color = color
-        self.image = load_image('Wking.png') if self.color == WHITE else load_image('Bking.png')
+        self.image = load_image('wking.png') if self.color == WHITE else load_image('bking.png')
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
         self.rect = self.image.get_rect().move(x, y)
         self.rect.x, self.rect.y = x, y
@@ -906,7 +911,7 @@ class King(pygame.sprite.Sprite):  # король
                                               get_cell((x.rect.x, x.rect.y))[0],
                                               row1,
                                               col1),
-                       filter(lambda x: x.color == opponent(self.color) and type(x) is not King, all_pieces.sprites())))\
+                       filter(lambda x: x.color == opponent(self.color) and type(x) is not King, all_pieces.sprites()))) \
                     or (abs(row1 - enemy_row) <= 1 and abs(col1 - enemy_col) <= 1):
                 return False
             return True
@@ -921,7 +926,7 @@ class Queen(pygame.sprite.Sprite):  # ферзь
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
         self.color = color
-        self.image = load_image('Wqueen.png') if self.color == WHITE else load_image('Bqueen.png')
+        self.image = load_image('wqueen.png') if self.color == WHITE else load_image('bqueen.png')
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
         self.rect = self.image.get_rect().move(x, y)
         self.rect.x, self.rect.y = x, y
@@ -964,12 +969,12 @@ class Queen(pygame.sprite.Sprite):  # ферзь
         return self.can_move(board, row, col, row1, col1)
 
 
-class Bishop(pygame.sprite.Sprite): # слон
+class Bishop(pygame.sprite.Sprite):  # слон
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
         self.color = color
-        self.image = load_image('Wbishop.png') if self.color == WHITE else load_image('Bbishop.png')
+        self.image = load_image('wbishop.png') if self.color == WHITE else load_image('bbishop.png')
         self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
         self.rect = self.image.get_rect().move(x, y)
         self.rect.x, self.rect.y = x, y
@@ -1067,6 +1072,7 @@ def game():
                         protocol.close()
 
                         pygame.display.set_caption('Анализ партии')
+                        pygame.display.set_icon(load_image('/knight/0.png'))
                         all_sprites = pygame.sprite.Group()
                         all_pieces = pygame.sprite.Group()
                         board = Board()
@@ -1103,6 +1109,7 @@ def game():
                 protocol.close()
 
                 pygame.display.set_caption('Анализ партии')
+                pygame.display.set_icon(load_image('knight/0.png'))
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
                 board = Board()
@@ -1427,6 +1434,7 @@ if __name__ == "__main__":
     INDENT = int(25 * SCALE_X)
     main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
     pygame.display.set_caption('Главное меню')
+    pygame.display.set_icon(load_image('knight/0.png'))
 
     intro = pygame.mixer.Sound('sounds/intro.wav')  # звук заставки
     click = pygame.mixer.Sound('sounds/click.wav')  # звук нажатия
@@ -1456,6 +1464,7 @@ if __name__ == "__main__":
                 pygame.display.quit()
                 screen = pygame.display.set_mode((WIDTH, HEIGHT))
                 pygame.display.set_caption('Играть')
+                pygame.display.set_icon(load_image('knight/0.png'))
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
                 board = Board()
@@ -1464,6 +1473,7 @@ if __name__ == "__main__":
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
                 pygame.display.set_caption('Главное меню')
+                pygame.display.set_icon(load_image('knight/0.png'))
             elif event.type == pygame.MOUSEBUTTONDOWN and (250 * SCALE_X <= event.pos[0] <= 550 * SCALE_X and
                                                            320 * SCALE_Y <= event.pos[1] <= 395 * SCALE_Y):
                 # режим анализа партий
@@ -1473,6 +1483,7 @@ if __name__ == "__main__":
                 pygame.display.quit()
                 screen = pygame.display.set_mode((WIDTH, HEIGHT))
                 pygame.display.set_caption('Анализ партии')
+                pygame.display.set_icon(load_image('knight/0.png'))
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
                 board = Board()
@@ -1480,6 +1491,7 @@ if __name__ == "__main__":
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
                 pygame.display.set_caption('Главное меню')
+                pygame.display.set_icon(load_image('knight/0.png'))
             elif event.type == pygame.MOUSEBUTTONDOWN and (250 * SCALE_X <= event.pos[0] <= 550 * SCALE_X and
                                                            405 * SCALE_Y <= event.pos[1] <= 480 * SCALE_Y):
                 # режим испытания
@@ -1489,6 +1501,7 @@ if __name__ == "__main__":
                 pygame.display.quit()
                 screen = pygame.display.set_mode((WIDTH, HEIGHT))
                 pygame.display.set_caption('Испытания')
+                pygame.display.set_icon(load_image('knight/0.png'))
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
                 board = Board()
@@ -1497,6 +1510,7 @@ if __name__ == "__main__":
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
                 pygame.display.set_caption('Главное меню')
+                pygame.display.set_icon(load_image('knight/0.png'))
             elif event.type == pygame.MOUSEBUTTONDOWN and (10 * SCALE_X <= event.pos[0] <= 60 * SCALE_X and
                                                            540 * SCALE_Y <= event.pos[1] <= 590 * SCALE_Y):
                 volume = 0 if volume else 1
