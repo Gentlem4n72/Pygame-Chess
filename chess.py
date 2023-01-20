@@ -23,8 +23,8 @@ def get_filename():
     top.withdraw()
     file_name = tkinter.filedialog.askopenfilename(parent=top, initialdir='protocols')
     top.destroy()
-    # if not file_name.endswith('txt'):
-    #     return ''
+    if not file_name.endswith('txt'):
+        return ''
     return file_name
 
 
@@ -312,10 +312,15 @@ def draw_game_menu(screen, board, analysis=False, challenges=False):
 
 
 def draw_win_screen(winner):
+    global b_wins, w_wins
     v = 350
     fps = 60
     clock = pygame.time.Clock()
     y = -500 * SCALE_Y
+    if winner == WHITE:
+        w_wins += 1
+    else:
+        b_wins += 1
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -351,7 +356,9 @@ def draw_win_screen(winner):
                                y + 435 * SCALE_Y - text.get_height() // 2))
         text = pygame.font.Font(None, round(70 * SCALE_Y)).render('Победа ' + ('белых.' if winner == WHITE
                                                                                else 'чёрных.'), True, 'white')
+        score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True, 'white')
         screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
+        screen.blit(score, (875 * SCALE_X - score.get_width() // 2, y + 250 * SCALE_Y - score.get_height() // 2))
         pygame.display.flip()
 
 
@@ -815,7 +822,7 @@ class King(pygame.sprite.Sprite):
                                               col1),
                        filter(lambda x: x.color == opponent(board.color), all_pieces.sprites()))
                    ):
-                print(opponent(self.color))
+                # print(opponent(self.color))
                 return False
             return True
         return False
@@ -929,8 +936,9 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 
 def game():
-    global board, check_alarm, all_sprites, all_pieces
-    protocol = open(f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt', mode='w+')
+    global board, check_alarm, all_sprites, all_pieces, b_wins, w_wins
+    filename = f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt'
+    protocol = open(filename, mode='w+')
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -952,6 +960,7 @@ def game():
                     choice = surrender(opponent(board.color))
                     if choice == 1:
                         click.play()
+                        protocol.close()
                         return
                     elif choice == 2:
                         click.play()
@@ -973,6 +982,7 @@ def game():
             choice = draw_win_screen(winner)
             if choice == 1:
                 click.play()
+                protocol.close()
                 return
             elif choice == 2:
                 click.play()
@@ -980,17 +990,39 @@ def game():
                 all_pieces.empty()
                 board = Board()
                 check_alarm = False
+                protocol.close()
+            elif choice == 3:
+                click.play()
+                check_alarm = False
+                protocol.close()
+
+                pygame.display.set_caption('Анализ партии')
+                all_sprites = pygame.sprite.Group()
+                all_pieces = pygame.sprite.Group()
+                board = Board()
+                analysis(file=filename)
+                return
         pygame.display.flip()
 
 
-def analysis():
+def analysis(file=''):
     global board, check_alarm
     arrow = []
     arrows = []
     borders = []
     circles = []
-    filename = ''
     protocol = None
+    filename = ''
+
+    if file:
+        protocol = open(file, mode='r')
+        print(file)
+    else:
+        while not filename:
+            filename = get_filename()
+        protocol = open(filename, mode='r')
+    board.turns = [tuple([*x.rstrip().split(), False]) for x in protocol.readlines()]
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1076,12 +1108,6 @@ def analysis():
                                cell_size // 2, round(5 * SCALE_X))
         pygame.display.flip()
 
-        if not filename:
-            filename = get_filename()
-            protocol = open(filename, mode='r')
-            board.turns = [tuple([*x.rstrip().split(), False]) for x in protocol.readlines()]
-        else:
-            protocol = open(filename, mode='r')
 
 
 def challenges():
@@ -1093,10 +1119,10 @@ def challenges():
         if type(sprites) is not Board:
             all_sprites.remove(sprites)
     all_pieces.empty()
-    print(os.path.join('Challenges', '1.txt'))
+    # print(os.path.join('Challenges', '1.txt'))
     with open(os.path.join('Challenges', '1.txt')) as f:
         mimic_field = [*map(lambda x: x.split(), [*map(lambda x: x.rstrip('\n'), f.readlines())])]
-        print(mimic_field)
+        # print(mimic_field)
         for row in range(8):
             for col in range(8):
                 if mimic_field[row][col] == 'bK':
@@ -1186,6 +1212,7 @@ if __name__ == "__main__":
                 all_sprites = pygame.sprite.Group()
                 all_pieces = pygame.sprite.Group()
                 board = Board()
+                b_wins, w_wins = 0, 0
                 game()
                 pygame.display.quit()
                 main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
