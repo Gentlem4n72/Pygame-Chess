@@ -613,7 +613,8 @@ class Board(pygame.sprite.Sprite):  # доска
 
                         # режим испытаний
                         if moves is not None:
-                            if row1 != moves[move][2] or col1 != moves[move][3]:
+                            if row1 != moves[move][2] or col1 != moves[move][3] or\
+                                row != moves[move][0] or col != moves[move][1]:
                                 # print(moves[move])
                                 # print(row1, col1, moves[move][2], moves[move][3])
                                 return False
@@ -1337,6 +1338,28 @@ def challenges():
                                 protocol = open(f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt',
                                                 mode='w+')
                                 check_alarm = False
+                            elif choice == 2 and file >= 1:
+                                right_move = True
+                                levels = ['Шах в 1 ход', 'Мат в 1 ход']
+                                board = Board()
+                                board.field = []
+                                for row in range(8):
+                                    board.field.append([None] * 8)
+                                for sprites in all_sprites.sprites():
+                                    if type(sprites) is not Board:
+                                        all_sprites.remove(sprites)
+                                all_pieces.empty()
+                                file = 0
+                                with open(os.path.join('Challenges', f'{levels[file]}.txt')) as f:
+                                    mimic_field = [
+                                        *map(lambda x: x.split(), [*map(lambda x: x.rstrip('\n'), f.readlines())])]
+                                    moves = []
+                                    for elem in mimic_field[9:]:
+                                        moves.append(list(map(int, elem)))
+                                    move = 0
+                                    set_challenge(mimic_field)
+                                protocol = open(f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt',
+                                                mode='w+')
 
                 elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
                     click.play()
