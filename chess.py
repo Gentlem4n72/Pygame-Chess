@@ -8,6 +8,7 @@ WHITE = 1
 BLACK = 2
 
 
+# загрузка изображения
 def load_image(name, colorkey=None):
     fullname = os.path.join('figures', name)
     # если файл не существует, то выходим
@@ -18,6 +19,7 @@ def load_image(name, colorkey=None):
     return image
 
 
+# диалоговое окно открытия протокола для анализа
 def get_filename():
     top = tkinter.Tk()
     top.withdraw()
@@ -28,6 +30,7 @@ def get_filename():
     return file_name
 
 
+# взятие на проходе
 def taking_on_the_pass(piece, board):
     if get_cell((piece.rect.x, piece.rect.y))[0] < 7:
         figure1 = board.field[get_cell((piece.rect.x, piece.rect.y))[1]][get_cell((piece.rect.x, piece.rect.y))[0] + 1]
@@ -54,6 +57,7 @@ def taking_on_the_pass(piece, board):
                                   piece)
 
 
+# рокировка
 def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
     if step == -1:
         col -= 1
@@ -65,6 +69,7 @@ def castling(field: list, row: int, col: int, col1: int, step: int) -> bool:
     return True
 
 
+# превращение пешки
 def pawn_conversion(board, x=None, y=None, choice=None, reverse=False):
     if x is None and y is None and choice is None:
         for piece in filter(lambda x: isinstance(x, Pawn), all_pieces):
@@ -92,6 +97,7 @@ def pawn_conversion(board, x=None, y=None, choice=None, reverse=False):
             all_sprites.remove(piece)
 
 
+# проверка на шах
 def check(field):
     result = [False, False]
     for r in field.field:
@@ -120,6 +126,7 @@ def check(field):
     return result
 
 
+# проверка на мат
 def checkmate(color, board):
     king_x = 0
     king_y = 0
@@ -198,6 +205,7 @@ def checkmate(color, board):
         return opponent(color)
 
 
+# проверка победы
 def win_check(board):
     kings = []
     for row in board.field:
@@ -210,6 +218,7 @@ def win_check(board):
         return False
 
 
+# возвращение цвета фигур оппонента
 def opponent(color):
     if color == WHITE:
         return BLACK
@@ -223,18 +232,21 @@ def correct_coords(row, col):
     return 0 <= row < 8 and 0 <= col < 8
 
 
+# получение координат клетки
 def get_cell(coords):
     ny = (coords[1] - (HEIGHT - BOARD_SIZE - INDENT * 2)) // cell_size
     nx = (coords[0] - (WIDTH - BOARD_SIZE - INDENT * 2)) // cell_size
     return nx, ny
 
 
+# получение координат по клетке
 def get_pixels(coords):
     ny = coords[1] * cell_size + HEIGHT - BOARD_SIZE - INDENT * 2
     nx = coords[0] * cell_size + WIDTH - BOARD_SIZE - INDENT * 2
     return nx, ny
 
 
+# отрисовка игрового меню (слева от шахматной доски)
 def draw_game_menu(screen, board, analysis=False, challenges=False):
     global check_alarm
 
@@ -271,7 +283,7 @@ def draw_game_menu(screen, board, analysis=False, challenges=False):
     screen.blit(return_text, (175 * SCALE_X - return_text.get_width() // 2,
                               55 * SCALE_Y - return_text.get_height() // 2))
 
-    if not analysis:
+    if not analysis:  # кнопки "сдаться" нет в анализе партий
         pygame.draw.rect(screen, 'black', (150 * SCALE_X, 750 * SCALE_Y, 525 * SCALE_X, 125 * SCALE_Y), round(5 * SCALE_X))
         pygame.draw.rect(screen, '#660000', (155 * SCALE_X, 755 * SCALE_Y, 515 * SCALE_X, 115 * SCALE_Y))
         surr_text = pygame.font.Font(None, round(50 * SCALE_X)).render('Сдаться', True, 'white')
@@ -304,6 +316,7 @@ def draw_game_menu(screen, board, analysis=False, challenges=False):
         screen.blit(check_text, (660 * SCALE_X - check_text.get_width() // 2,
                                  180 * SCALE_Y - check_text.get_height() // 2))
 
+    # звук предупреждения о шахе
     if not check_alarm and (checks[0] or checks[1]):
         check_sound.play()
         check_alarm = True
@@ -311,22 +324,26 @@ def draw_game_menu(screen, board, analysis=False, challenges=False):
         check_alarm = False
 
 
+# отрисовка экрана победы
 def draw_win_screen(winner):
     global b_wins, w_wins
     v = 350
     fps = 60
     clock = pygame.time.Clock()
     y = -500 * SCALE_Y
+
+    # обновление счета
     if winner == WHITE:
         w_wins += 1
     else:
         b_wins += 1
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if y < 150 * SCALE_Y:
+                if y < 150 * SCALE_Y:  # нажатие полностью "опускает" окно
                     y = 150 * SCALE_Y
                 else:
                     mx, my = event.pos
@@ -362,6 +379,7 @@ def draw_win_screen(winner):
         pygame.display.flip()
 
 
+# отривка главного меню
 def draw_main_menu(main_menu):
     text = pygame.font.Font(None, round(100 * SCALE_X)).render('Шах и Мат', True, 'white')
     main_menu.blit(text, (400 * SCALE_X - text.get_width() // 2, 150 * SCALE_Y - text.get_height() // 2))
@@ -373,6 +391,7 @@ def draw_main_menu(main_menu):
         main_menu.blit(btn_text, (400 * SCALE_X - btn_text.get_width() // 2,
                                   260 * SCALE_Y + 95 * SCALE_Y * _ - btn_text.get_height() // 2))
 
+    # кнопка вкл/выкл звука
     image = pygame.transform.scale(load_image('note/img.png'), (40 * SCALE_X, 40 * SCALE_Y))
     main_menu.blit(image, (15 * SCALE_X, 545 * SCALE_Y,
                            40 * SCALE_X, 40 * SCALE_Y))
@@ -382,6 +401,7 @@ def draw_main_menu(main_menu):
         pygame.draw.line(main_menu, 'black', (13 * SCALE_X, 543 * SCALE_Y), (57 * SCALE_X, 587 * SCALE_Y), 5)
 
 
+# отрисовка подсказок для возможного хода
 def draw_possible_moves(board, row, col):
     for i in range(8):
         for j in range(8):
@@ -397,6 +417,7 @@ def draw_possible_moves(board, row, col):
     pygame.display.flip()
 
 
+# отрисовка окна выбора пешки при превращении
 def draw_selection_dialog():
     while True:
         pygame.draw.rect(screen, '#404147', (cell_size + board.indent_h, cell_size * 3 + board.indent_v,
@@ -430,11 +451,20 @@ def draw_selection_dialog():
                     return Queen
 
 
+# сдача игры
 def surrender(winner):
+    global b_wins, w_wins
     v = 350
     fps = 60
     clock = pygame.time.Clock()
     y = -500 * SCALE_Y
+
+    # обновление счета
+    if winner == WHITE:
+        w_wins += 1
+    else:
+        b_wins += 1
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -468,14 +498,17 @@ def surrender(winner):
             text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
             screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
                                y + 435 * SCALE_Y - text.get_height() // 2))
+        # тот, кто сдался - проиграл
         text = pygame.font.Font(None, round(70 * SCALE_Y)).render(('Черные' if winner == WHITE else 'Белые') +
                                                                   ' сдались. ' + 'Победа ' + ('белых.' if winner == WHITE
                                                                                else 'чёрных.'), True, 'white')
+        score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True, 'white')
         screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
+        screen.blit(score, (875 * SCALE_X - score.get_width() // 2, y + 250 * SCALE_Y - score.get_height() // 2))
         pygame.display.flip()
 
 
-class Board(pygame.sprite.Sprite):
+class Board(pygame.sprite.Sprite):  # доска
     def __init__(self):
         super().__init__(all_sprites)
         self.color = WHITE
@@ -664,7 +697,7 @@ class Board(pygame.sprite.Sprite):
             return True
 
 
-class Rook(pygame.sprite.Sprite):
+class Rook(pygame.sprite.Sprite): # ладья
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.color = color
@@ -706,7 +739,7 @@ class Rook(pygame.sprite.Sprite):
         return self.can_move(board, row, col, row1, col1)
 
 
-class Pawn(pygame.sprite.Sprite):
+class Pawn(pygame.sprite.Sprite):  # пешка
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
@@ -761,7 +794,7 @@ class Pawn(pygame.sprite.Sprite):
                 and (col + 1 == col1 or col - 1 == col1))
 
 
-class Knight(pygame.sprite.Sprite):
+class Knight(pygame.sprite.Sprite):  # конь
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.color = color
@@ -793,7 +826,7 @@ class Knight(pygame.sprite.Sprite):
         return self.can_move(board, row, col, row1, col1)
 
 
-class King(pygame.sprite.Sprite):
+class King(pygame.sprite.Sprite):  # король
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
@@ -831,7 +864,7 @@ class King(pygame.sprite.Sprite):
         return self.can_move(board, row, col, row1, col1)
 
 
-class Queen(pygame.sprite.Sprite):
+class Queen(pygame.sprite.Sprite):  # ферзь
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
@@ -879,7 +912,7 @@ class Queen(pygame.sprite.Sprite):
         return self.can_move(board, row, col, row1, col1)
 
 
-class Bishop(pygame.sprite.Sprite):
+class Bishop(pygame.sprite.Sprite): # слон
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
         self.coords = get_cell((x, y))
@@ -916,6 +949,7 @@ class Bishop(pygame.sprite.Sprite):
         return self.can_move(board, row, col, row1, col1)
 
 
+# анимация в главном меню
 class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, frames, x, y):
         super().__init__(animated_sprite)
@@ -935,8 +969,10 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.frames[self.cur_frame], (100 * SCALE_X, 100 * SCALE_Y))
 
 
+# режим игры
 def game():
     global board, check_alarm, all_sprites, all_pieces, b_wins, w_wins
+    # создание файла для протокола
     filename = f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt'
     protocol = open(filename, mode='w+')
     while True:
@@ -953,21 +989,34 @@ def game():
                         figure.play()
                         board.move_piece(x, y, protocol=protocol)
                 elif 25 * SCALE_X <= x <= 325 * SCALE_X and 25 * SCALE_Y <= y <= 85 * SCALE_Y:
+                    # возврат в главное меню
                     click.play()
                     return
                 elif 150 * SCALE_X <= x <= 675 * SCALE_X and 750 * SCALE_Y <= y <= 875 * SCALE_Y:
+                    # сдача игры
                     gameover.play()
                     choice = surrender(opponent(board.color))
-                    if choice == 1:
+                    if choice == 1:  # возврат в главное меню
                         click.play()
                         protocol.close()
                         return
-                    elif choice == 2:
+                    elif choice == 2:  # реванш
                         click.play()
                         all_sprites.empty()
                         all_pieces.empty()
                         board = Board()
                         check_alarm = False
+                    elif choice == 3:  # переход в анализ партии
+                        click.play()
+                        check_alarm = False
+                        protocol.close()
+
+                        pygame.display.set_caption('Анализ партии')
+                        all_sprites = pygame.sprite.Group()
+                        all_pieces = pygame.sprite.Group()
+                        board = Board()
+                        analysis(file=filename)
+                        return
         screen.fill('#404147')
         draw_game_menu(screen, board)
         all_sprites.update()
@@ -977,21 +1026,21 @@ def game():
             winner = WHITE
         elif not winner and board.checks[0] > 1:
             winner = BLACK
-        if winner:
+        if winner:  # если есть победитель
             gameover.play()
             choice = draw_win_screen(winner)
-            if choice == 1:
+            if choice == 1:  # возврат в главное меню
                 click.play()
                 protocol.close()
                 return
-            elif choice == 2:
+            elif choice == 2:  # реванш
                 click.play()
                 all_sprites.empty()
                 all_pieces.empty()
                 board = Board()
                 check_alarm = False
                 protocol.close()
-            elif choice == 3:
+            elif choice == 3:  # переход в анализ партии
                 click.play()
                 check_alarm = False
                 protocol.close()
@@ -1005,6 +1054,7 @@ def game():
         pygame.display.flip()
 
 
+# режим анализа партий
 def analysis(file=''):
     global board, check_alarm
     arrow = []
@@ -1014,10 +1064,10 @@ def analysis(file=''):
     protocol = None
     filename = ''
 
-    if file:
+    if file:  # если перешли с режима игры, то открываем последнюю игру
         protocol = open(file, mode='r')
-        print(file)
-    else:
+        # print(file)
+    else:  # иначе вызываем диалог выбора файла
         while not filename:
             filename = get_filename()
         protocol = open(filename, mode='r')
@@ -1109,7 +1159,7 @@ def analysis(file=''):
         pygame.display.flip()
 
 
-
+# режим испытаний
 def challenges():
     global board, check_alarm, all_sprites, all_pieces
     board.field = []
@@ -1173,8 +1223,11 @@ if __name__ == "__main__":
     running = True
     pygame.mixer.pre_init(44100, -16, 1, 512)
     pygame.init()
+
+    # подгон координат под разрешение
     w, h = pygame.display.Info().current_w, pygame.display.Info().current_h
     SCALE_X, SCALE_Y = float(w) / 1920, float(h) / 1080
+
     WIDTH = int(1700 * SCALE_X)
     HEIGHT = int(900 * SCALE_Y)
     cell_size = int(100 * SCALE_X)
@@ -1183,15 +1236,16 @@ if __name__ == "__main__":
     main_menu = pygame.display.set_mode((800 * SCALE_X, 600 * SCALE_Y))
     pygame.display.set_caption('Главное меню')
 
-    intro = pygame.mixer.Sound('sounds/intro.wav')
-    click = pygame.mixer.Sound('sounds/click.wav')
-    check_sound = pygame.mixer.Sound('sounds/check.wav')
-    figure = pygame.mixer.Sound('sounds/figure.wav')
-    gameover = pygame.mixer.Sound('sounds/gameover.wav')
+    intro = pygame.mixer.Sound('sounds/intro.wav')  # звук заставки
+    click = pygame.mixer.Sound('sounds/click.wav')  # звук нажатия
+    check_sound = pygame.mixer.Sound('sounds/check.wav')  # звук шаха
+    figure = pygame.mixer.Sound('sounds/figure.wav')  # звук перемещения фигуры
+    gameover = pygame.mixer.Sound('sounds/gameover.wav')  # звук конца игры
     sounds = [intro, click, check_sound, figure, gameover]
     intro.play()
     volume = 1
 
+    # анимация на главном экране
     animated_sprite = pygame.sprite.Group()
     knight = AnimatedSprite(9, 100, 100)
     fps = 6
@@ -1203,6 +1257,7 @@ if __name__ == "__main__":
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN and (250 * SCALE_X <= event.pos[0] <= 550 * SCALE_X and
                                                            225 * SCALE_Y <= event.pos[1] <= 300 * SCALE_Y):
+                # режим игры
                 click.play()
                 check_alarm = False
 
@@ -1219,6 +1274,7 @@ if __name__ == "__main__":
                 pygame.display.set_caption('Главное меню')
             elif event.type == pygame.MOUSEBUTTONDOWN and (250 * SCALE_X <= event.pos[0] <= 550 * SCALE_X and
                                                            320 * SCALE_Y <= event.pos[1] <= 395 * SCALE_Y):
+                # режим анализа партий
                 click.play()
                 check_alarm = False
 
@@ -1234,6 +1290,7 @@ if __name__ == "__main__":
                 pygame.display.set_caption('Главное меню')
             elif event.type == pygame.MOUSEBUTTONDOWN and (250 * SCALE_X <= event.pos[0] <= 550 * SCALE_X and
                                                            405 * SCALE_Y <= event.pos[1] <= 480 * SCALE_Y):
+                # режим испытания
                 click.play()
                 check_alarm = False
 
