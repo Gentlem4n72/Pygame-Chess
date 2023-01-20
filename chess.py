@@ -832,9 +832,10 @@ class Pawn(pygame.sprite.Sprite):  # пешка
             return False
 
         direction = 1 if (self.color == BLACK) else -1
-
-        return (row + direction == row1
-                and (col + 1 == col1 or col - 1 == col1))
+        if board.field[row1][col1] and board.field[row1][col1].color == opponent(self.color):
+            return (row + direction == row1
+                    and (col + 1 == col1 or col - 1 == col1))
+        return False
 
 
 class Knight(pygame.sprite.Sprite):  # конь
@@ -889,6 +890,8 @@ class King(pygame.sprite.Sprite):  # король
     def can_move(self, board, row, col, row1, col1):
         delta_row = abs(row - row1)
         delta_col = abs(col - col1)
+        enemy_king = [*filter(lambda x: x.color == opponent(self.color) and type(x) is King, all_pieces.sprites())][0]
+        enemy_col, enemy_row = get_cell((enemy_king.rect.x, enemy_king.rect.y))
         if delta_row <= 1 and delta_col <= 1 and \
                 (not board.get_piece(row1, col1)
                  or board.get_piece(row1, col1).color != self.color) and correct_coords(row1, col1):
@@ -896,9 +899,8 @@ class King(pygame.sprite.Sprite):  # король
                                               get_cell((x.rect.x, x.rect.y))[0],
                                               row1,
                                               col1),
-                       filter(lambda x: x.color == opponent(board.color), all_pieces.sprites()))
-                   ):
-                # print(opponent(self.color))
+                       filter(lambda x: x.color == opponent(self.color) and type(x) is not King, all_pieces.sprites())))\
+                    or (abs(row1 - enemy_row) <= 1 and abs(col1 - enemy_col) <= 1):
                 return False
             return True
         return False
