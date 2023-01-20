@@ -38,11 +38,10 @@ def taking_on_the_pass(piece, board):
         if type(piece) is Pawn:
             if type(figure1) is Pawn and figure1.color != piece.color:
                 figure1.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure1.color == WHITE else
-                                  get_cell((piece.rect.x, piece.rect.y))[1] + 1,
-                                  get_cell((piece.rect.x, piece.rect.y))[0],
-                                  piece)
-        if type(piece) is Pawn:
-            if type(figure2) is Pawn and figure2.color != piece.color:
+                                   get_cell((piece.rect.x, piece.rect.y))[1] + 1,
+                                   get_cell((piece.rect.x, piece.rect.y))[0],
+                                   piece)
+            elif type(figure2) is Pawn and figure2.color != piece.color:
                 figure2.taking = (get_cell((piece.rect.x, piece.rect.y))[1] - 1 if figure2.color == WHITE else
                                   get_cell((piece.rect.x, piece.rect.y))[1] + 1,
                                   get_cell((piece.rect.x, piece.rect.y))[0],
@@ -168,8 +167,8 @@ def checkmate(color, board):
                                          get_cell((figure.rect.x, figure.rect.y))[1],
                                          get_cell((figure.rect.x, figure.rect.y))[0],
                                          get_cell((x.rect.x, x.rect.y))[1],
-                                         get_cell((x.rect.x, x.rect.y))[0]
-                                         ),
+                                         get_cell((x.rect.x, x.rect.y))[0],
+                                         mate=True),
                        check_figures)):
                 return
 
@@ -181,7 +180,8 @@ def checkmate(color, board):
                                          get_cell((figure.rect.x, figure.rect.y))[1],
                                          get_cell((figure.rect.x, figure.rect.y))[0],
                                          x,
-                                         y)\
+                                         y,
+                                         mate=True)\
                             or figure.can_move(board,
                                                get_cell((figure.rect.x, figure.rect.y))[1],
                                                get_cell((figure.rect.x, figure.rect.y))[0],
@@ -194,7 +194,8 @@ def checkmate(color, board):
                                                           get_cell((z.rect.x, z.rect.y))[1],
                                                           get_cell((z.rect.x, z.rect.y))[0],
                                                           king_x,
-                                                          king_y), figures)) is False:
+                                                          king_y,
+                                                          mate=True), figures)) is False:
                             board.field[x][y] = old_figure
                             board.field[old_cords[1]][old_cords[0]] = figure
                             return
@@ -669,10 +670,11 @@ class Board(pygame.sprite.Sprite):  # доска
                         self.field[row][col] = None  # Снять фигуру.
                         self.field[row1][col1] = piece  # Поставить на новое место.
                         piece.rect.x, piece.rect.y = get_pixels((col1, row1))
-                        if type(piece) is Pawn and piece.taking[0] == col1 and piece.taking[1] == row1:
+                        if type(piece) is Pawn and piece.taking[1] == col1 and piece.taking[0] == row1:
                             all_pieces.remove(piece.taking[2])
                             all_sprites.remove(piece.taking[2])
-                            self.field[row1 - 1 if self.color == WHITE else row1 + 1][col1] = None
+                            self.field[row1 + 1 if self.color == WHITE else row1 - 1][col1] = None
+                            print(self.field)
                         if type(piece) is Pawn and piece.taking:
                             piece.taking = (None, None, None)
                         self.color = opponent(self.color)
@@ -778,7 +780,7 @@ class Rook(pygame.sprite.Sprite): # ладья
 
         return True
 
-    def can_attack(self, board, row, col, row1, col1):
+    def can_attack(self, board, row, col, row1, col1, mate=False):
         return self.can_move(board, row, col, row1, col1)
 
 
@@ -826,16 +828,20 @@ class Pawn(pygame.sprite.Sprite):  # пешка
 
         return False
 
-    def can_attack(self, board, row, col, row1, col1):
+    def can_attack(self, board, row, col, row1, col1, mate=False):
 
         if row1 == row and col1 == col:
             return False
 
         direction = 1 if (self.color == BLACK) else -1
-        if board.field[row1][col1] and board.field[row1][col1].color == opponent(self.color):
+        if mate:
+            if board.field[row1][col1] and board.field[row1][col1].color == opponent(self.color):
+                return (row + direction == row1
+                        and (col + 1 == col1 or col - 1 == col1))
+            return False
+        else:
             return (row + direction == row1
                     and (col + 1 == col1 or col - 1 == col1))
-        return False
 
 
 class Knight(pygame.sprite.Sprite):  # конь
@@ -866,7 +872,7 @@ class Knight(pygame.sprite.Sprite):  # конь
             return True
         return False
 
-    def can_attack(self, board, row, col, row1, col1):
+    def can_attack(self, board, row, col, row1, col1, mate=False):
         return self.can_move(board, row, col, row1, col1)
 
 
@@ -905,7 +911,7 @@ class King(pygame.sprite.Sprite):  # король
             return True
         return False
 
-    def can_attack(self, board, row, col, row1, col1):
+    def can_attack(self, board, row, col, row1, col1, mate=False):
         return self.can_move(board, row, col, row1, col1)
 
 
@@ -953,7 +959,7 @@ class Queen(pygame.sprite.Sprite):  # ферзь
 
         return False
 
-    def can_attack(self, board, row, col, row1, col1):
+    def can_attack(self, board, row, col, row1, col1, mate=False):
         return self.can_move(board, row, col, row1, col1)
 
 
@@ -990,7 +996,7 @@ class Bishop(pygame.sprite.Sprite): # слон
                 return False
         return True
 
-    def can_attack(self, board, row, col, row1, col1):
+    def can_attack(self, board, row, col, row1, col1, mate=False):
         return self.can_move(board, row, col, row1, col1)
 
 
@@ -1047,6 +1053,9 @@ def game():
                         return
                     elif choice == 2:  # реванш
                         click.play()
+                        protocol.close()
+                        filename = f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt'
+                        protocol = open(filename, mode='w+')
                         all_sprites.empty()
                         all_pieces.empty()
                         board = Board()
@@ -1080,11 +1089,13 @@ def game():
                 return
             elif choice == 2:  # реванш
                 click.play()
+                protocol.close()
+                filename = f'protocols/{dt.datetime.now().strftime("%d-%m-%Y %H-%M-%S")}.txt'
+                protocol = open(filename, mode='w+')
                 all_sprites.empty()
                 all_pieces.empty()
                 board = Board()
                 check_alarm = False
-                protocol.close()
             elif choice == 3:  # переход в анализ партии
                 click.play()
                 check_alarm = False
@@ -1263,11 +1274,9 @@ def challenges():
         if type(sprites) is not Board:
             all_sprites.remove(sprites)
     all_pieces.empty()
-    # print(os.path.join('Challenges', '1.txt'))
     file = 0
     with open(os.path.join('Challenges', f'{levels[file]}.txt')) as f:
         mimic_field = [*map(lambda x: x.split(), [*map(lambda x: x.rstrip('\n'), f.readlines())])]
-        # print(mimic_field)
         moves = []
         for elem in mimic_field[9:]:
             moves.append(list(map(int, elem)))
