@@ -452,18 +452,19 @@ def draw_selection_dialog():
 
 
 # сдача игры
-def surrender(winner):
+def surrender(winner, challenges=False):
     global b_wins, w_wins
     v = 350
     fps = 60
     clock = pygame.time.Clock()
     y = -500 * SCALE_Y
 
-    # обновление счета
-    if winner == WHITE:
-        w_wins += 1
-    else:
-        b_wins += 1
+    if not challenges:
+        # обновление счета
+        if winner == WHITE:
+            w_wins += 1
+        else:
+            b_wins += 1
 
     while True:
         for event in pygame.event.get():
@@ -491,20 +492,31 @@ def surrender(winner):
         all_sprites.draw(screen)
         pygame.draw.rect(screen, '#404147', (300 * SCALE_X, y, 1150 * SCALE_X, 600 * SCALE_Y))
         pygame.draw.rect(screen, 'black', (300 * SCALE_X, y, 1150 * SCALE_X, 600 * SCALE_Y), round(5 * SCALE_X))
-        for _ in range(3):
-            text = ['На главное меню', 'Реванш', 'Анализ партии'][_]
-            pygame.draw.rect(screen, 'black', (375 * SCALE_X + 350 * SCALE_X * _, y + 400 * SCALE_Y,
-                                               300 * SCALE_X, 75 * SCALE_Y), 5)
-            text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
-            screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
-                               y + 435 * SCALE_Y - text.get_height() // 2))
+        if challenges:
+            for _ in range(2):
+                text = ['На главное меню', 'Реванш'][_]
+                pygame.draw.rect(screen, 'black', (375 * SCALE_X + 350 * SCALE_X * _, y + 400 * SCALE_Y,
+                                                   300 * SCALE_X, 75 * SCALE_Y), 5)
+                text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
+                screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
+                                   y + 435 * SCALE_Y - text.get_height() // 2))
+        else:
+            for _ in range(3):
+                text = ['На главное меню', 'Реванш', 'Анализ партии'][_]
+                pygame.draw.rect(screen, 'black', (375 * SCALE_X + 350 * SCALE_X * _, y + 400 * SCALE_Y,
+                                                   300 * SCALE_X, 75 * SCALE_Y), 5)
+                text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
+                screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
+                                   y + 435 * SCALE_Y - text.get_height() // 2))
         # тот, кто сдался - проиграл
         text = pygame.font.Font(None, round(70 * SCALE_Y)).render(('Черные' if winner == WHITE else 'Белые') +
                                                                   ' сдались. ' + 'Победа ' + ('белых.' if winner == WHITE
                                                                                else 'чёрных.'), True, 'white')
-        score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True, 'white')
         screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
-        screen.blit(score, (875 * SCALE_X - score.get_width() // 2, y + 250 * SCALE_Y - score.get_height() // 2))
+
+        if not challenges:
+            score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True, 'white')
+            screen.blit(score, (875 * SCALE_X - score.get_width() // 2, y + 250 * SCALE_Y - score.get_height() // 2))
         pygame.display.flip()
 
 
@@ -1236,7 +1248,7 @@ def challenges():
                     return
                 elif 150 * SCALE_X <= x <= 675 * SCALE_X and 750 * SCALE_Y <= y <= 875 * SCALE_Y:
                     gameover.play()
-                    choice = surrender(opponent(board.color))
+                    choice = surrender(opponent(board.color), challenges=True)
                     if choice == 1:
                         click.play()
                         return
