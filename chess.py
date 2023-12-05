@@ -6,6 +6,7 @@ import datetime as dt
 
 WHITE = 1
 BLACK = 2
+DRAW = 3
 
 
 # загрузка изображения
@@ -206,6 +207,16 @@ def checkmate(color, board):
         return opponent(color)
 
 
+def draw(board):
+    figures = [*all_pieces.sprites()]
+    for p in figures:
+        for i in range(8):
+            for j in range(8):
+                if p.can_move(board, *p.coords, i, j) or p.can_attack(board, *p.coords, i, j):
+                    return
+    return True
+
+
 # проверка победы
 def win_check(board):
     kings = []
@@ -392,8 +403,13 @@ def draw_win_screen(winner, challenges=False):
                 text = pygame.font.Font(None, round(45 * SCALE_Y)).render(text, True, 'white')
                 screen.blit(text, (525 * SCALE_X + 350 * SCALE_X * _ - text.get_width() // 2,
                                    y + 435 * SCALE_Y - text.get_height() // 2))
-            text = pygame.font.Font(None, round(70 * SCALE_Y)).render('Победа ' + ('белых.' if winner == WHITE
-                                                                                   else 'чёрных.'), True, 'white')
+            if winner == DRAW:
+                msg = 'Ничья'
+            elif winner == WHITE:
+                msg = 'Победа белых'
+            elif winner == BLACK:
+                msg = 'Побуда черных'
+            text = pygame.font.Font(None, round(70 * SCALE_Y)).render(msg, True, 'white')
             score = pygame.font.Font(None, round(50 * SCALE_Y)).render(f'Черные  {b_wins}:{w_wins}  Белые', True,
                                                                        'white')
             screen.blit(text, (875 * SCALE_X - text.get_width() // 2, y + 150 * SCALE_Y - text.get_height() // 2))
@@ -751,6 +767,7 @@ class Board(pygame.sprite.Sprite):  # доска
 class Rook(pygame.sprite.Sprite):  # ладья
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
+        self.coords = get_cell((x, y))
         self.color = color
         if self.color == WHITE:
             self.image = load_image('wrook.png')
@@ -853,6 +870,7 @@ class Pawn(pygame.sprite.Sprite):  # пешка
 class Knight(pygame.sprite.Sprite):  # конь
     def __init__(self, color, x, y):
         super().__init__(all_sprites, all_pieces)
+        self.coords = get_cell((x, y))
         self.color = color
         if self.color == WHITE:
             self.image = load_image("wknight.png")
@@ -1082,7 +1100,7 @@ def game():
         draw_game_menu(screen, board)
         all_sprites.update()
         all_sprites.draw(screen)
-        winner = checkmate(board.color, board)
+        winner = checkmate(board.color, board) if not draw(board) else DRAW
         if not winner and board.checks[1] > 1:
             winner = WHITE
         elif not winner and board.checks[0] > 1:
